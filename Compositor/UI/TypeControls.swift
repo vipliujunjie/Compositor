@@ -249,3 +249,20 @@ private struct TypeFontPicker: NSViewRepresentable {
         }
     }
 }
+
+/// The rail's Type tool icon: a "T", drawn here rather than taken from SF Symbols. Apple's
+/// `textformat` symbol has a localized variant that renders as the word 格式 in a Chinese build,
+/// which reads as a label rather than a tool.
+struct TypeToolIcon: View {
+    var body: some View {
+        Canvas { context, size in
+            let w = size.width, h = size.height
+            var letter = Path()
+            letter.addRect(CGRect(x: w * 0.08, y: h * 0.12, width: w * 0.84, height: h * 0.15))
+            letter.addRect(CGRect(x: w * 0.42, y: h * 0.12, width: w * 0.16, height: h * 0.76))
+            letter.addRect(CGRect(x: w * 0.24, y: h * 0.76, width: w * 0.52, height: h * 0.12))
+            context.fill(letter, with: .foreground)
+        }
+        .accessibilityHidden(true)
+    }
+}
