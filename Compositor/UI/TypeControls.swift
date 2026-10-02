@@ -38,7 +38,7 @@ struct TypeControls: View {
                     })
                         .frame(width: 210).help("Font face, including bold and italic variants")
                     TextField("Size", value: number(\.fontSize), format: .number).frame(width: 52)
-                        .unitSuffix("px", scrubValue: value(\.fontSize), sensitivity: 1, range: 1...2000, step: 1)
+                        .unitSuffix(String(localized: "px"), scrubValue: value(\.fontSize), sensitivity: 1, range: 1...2000, step: 1)
                         .arrowSteps(value: { Double(session.currentTextStyle.fontSize) },
                                     change: { stepped in session.changeTextStyle { $0.fontSize = CGFloat(min(2000, max(1, stepped))) } })
                     Button { session.openTextColorPicker() } label: {
@@ -63,8 +63,8 @@ struct TypeControls: View {
                                     .contentShape(RoundedRectangle(cornerRadius: 4))
                             }
                             .buttonStyle(.plain)
-                            .help("Align " + alignment.rawValue.lowercased())
-                            .accessibilityLabel("Align " + alignment.rawValue.lowercased())
+                            .help(String(localized: "Align \(alignment.displayName.lowercased())"))
+                            .accessibilityLabel(String(localized: "Align \(alignment.displayName.lowercased())"))
                             .accessibilityAddTraits(selected ? .isSelected : [])
                         }
                     }
@@ -119,7 +119,7 @@ private struct TypeFontPicker: NSViewRepresentable {
         button.cell?.lineBreakMode = .byTruncatingTail
         button.cell?.usesSingleLineMode = true
         button.cell?.alignment = .left
-        button.setAccessibilityLabel("Font")
+        button.setAccessibilityLabel(String(localized: "Font"))
         button.target = context.coordinator
         button.action = #selector(Coordinator.choose(_:))
         button.menu?.delegate = context.coordinator
@@ -142,10 +142,12 @@ private struct TypeFontPicker: NSViewRepresentable {
 
     /// Selected letters in more than one face: the menu says so with an item of its own at the top, which isn't a font.
     private static let multiple = "(Multiple)"
+    /// What that item shows; the item's represented object keeps `multiple` for the checks above.
+    private static var multipleTitle: String { String(localized: "(Multiple)") }
     private static func isMultiple(_ item: NSMenuItem?) -> Bool { item?.representedObject as? String == multiple }
     static func showMultiple(in button: NSPopUpButton) {
         if !isMultiple(button.item(at: 0)) {
-            let item = NSMenuItem(title: multiple, action: nil, keyEquivalent: "")
+            let item = NSMenuItem(title: multipleTitle, action: nil, keyEquivalent: "")
             item.representedObject = multiple
             button.menu?.insertItem(item, at: 0)
         }

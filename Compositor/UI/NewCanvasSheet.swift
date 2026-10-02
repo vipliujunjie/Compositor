@@ -10,7 +10,8 @@ struct NewCanvasSheet: View {
     @State private var height = "1080"
     @State private var suggestedClipboardSize = false
     @FocusState private var focusedField: Field?
-    private enum Field { case width, height }
+    /// The width and height fields keep a stable identifier whatever language their labels use.
+    private enum Field: String { case width, height }
     private var valid: Bool {
         CanvasDocument.validDimension(width) != nil && CanvasDocument.validDimension(height) != nil
     }
@@ -47,9 +48,9 @@ struct NewCanvasSheet: View {
                 }
             }
             HStack(spacing: 16) {
-                dimension("Width", text: $width, field: .width)
+                dimension(String(localized: "Width"), text: $width, field: .width)
                 Image(systemName: "multiply").foregroundStyle(.tertiary).padding(.top, 20)
-                dimension("Height", text: $height, field: .height)
+                dimension(String(localized: "Height"), text: $height, field: .height)
             }
             Text(valid ? "Transparent canvas · sRGB" : "Enter whole numbers from 1 to \(DocumentLimits.maxSide.formatted()) pixels.")
                 .font(.callout).foregroundStyle(valid ? Color.secondary : Color.orange)
@@ -110,7 +111,7 @@ struct NewCanvasSheet: View {
             HStack {
                 TextField(title, text: text).textFieldStyle(.plain)
                     .focused($focusedField, equals: field)
-                    .accessibilityIdentifier(title.lowercased() + "Input")
+                    .accessibilityIdentifier(field.rawValue + "Input")
                 Text("px").foregroundStyle(.secondary)
             }
             .padding(12).background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 7))
@@ -132,17 +133,17 @@ struct CanvasPreset: Identifiable, Hashable {
             CanvasPreset(title: "1080p", width: 1920, height: 1080),
         ],
         [
-            CanvasPreset(title: "iPhone 18 Pro", width: 1206, height: 2622),
-            CanvasPreset(title: "iPhone 18 Pro Max", width: 1320, height: 2868),
-            CanvasPreset(title: "MacBook Pro 14\"", width: 3024, height: 1964),
-            CanvasPreset(title: "MacBook Pro 16\"", width: 3456, height: 2234),
-            CanvasPreset(title: "Studio Display", width: 5120, height: 2880),
+            CanvasPreset(title: String(localized: "iPhone 18 Pro"), width: 1206, height: 2622),
+            CanvasPreset(title: String(localized: "iPhone 18 Pro Max"), width: 1320, height: 2868),
+            CanvasPreset(title: String(localized: "MacBook Pro 14\""), width: 3024, height: 1964),
+            CanvasPreset(title: String(localized: "MacBook Pro 16\""), width: 3456, height: 2234),
+            CanvasPreset(title: String(localized: "Studio Display"), width: 5120, height: 2880),
         ],
         [
-            CanvasPreset(title: "Instagram Square", width: 1080, height: 1080),
-            CanvasPreset(title: "Instagram Portrait", width: 1080, height: 1350),
-            CanvasPreset(title: "Instagram Story", width: 1080, height: 1920),
-            CanvasPreset(title: "YouTube Thumb", width: 1080, height: 608),
+            CanvasPreset(title: String(localized: "Instagram Square"), width: 1080, height: 1080),
+            CanvasPreset(title: String(localized: "Instagram Portrait"), width: 1080, height: 1350),
+            CanvasPreset(title: String(localized: "Instagram Story"), width: 1080, height: 1920),
+            CanvasPreset(title: String(localized: "YouTube Thumb"), width: 1080, height: 608),
         ],
     ]
     static let all = groups.flatMap { $0 }

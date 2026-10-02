@@ -1,8 +1,32 @@
 import AppKit
 
-nonisolated enum LevelsSample: String, CaseIterable { case black = "Black", gray = "Gray", white = "White" }
+nonisolated enum LevelsSample: String, CaseIterable {
+    case black = "Black", gray = "Gray", white = "White"
+
+    /// The name shown in the interface. The eyedropper sets a tonal point, which Chinese Photoshop
+    /// calls 黑场 / 灰场 / 白场, not the 黑色 / 灰色 / 白色 of a fill color, so these carry their
+    /// own catalog entries while still reading "Black" and so on in English.
+    var displayName: String {
+        switch self {
+        case .black: String(localized: "Black point", defaultValue: "Black")
+        case .gray: String(localized: "Gray point", defaultValue: "Gray")
+        case .white: String(localized: "White point", defaultValue: "White")
+        }
+    }
+}
+
 nonisolated enum LevelsAuto: String, CaseIterable {
     case contrast = "Contrast", color = "Color", neutral = "Color + neutral midtones"
+
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .contrast: String(localized: "Contrast")
+        case .color: String(localized: "Color")
+        case .neutral: String(localized: "Color + neutral midtones")
+        }
+    }
+
     func settings(histogram: [[Double]]) -> LevelsSettings {
         var result = LevelsSettings()
         func endpoints(_ bins: [Double]) -> (Double, Double)? {

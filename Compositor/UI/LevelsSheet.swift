@@ -17,7 +17,7 @@ struct LevelsSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Picker("Channel", selection: Binding(get: { settings.channel }, set: { channel in update { $0.channel = channel } })) {
-                ForEach(LevelsChannel.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                ForEach(LevelsChannel.allCases, id: \.self) { Text($0.displayName).tag($0) }
             }.frame(width: 180)
             VStack(spacing: 0) {
                 histogram.frame(height: 150).background(.black.opacity(0.25))
@@ -49,19 +49,19 @@ struct LevelsSheet: View {
                         edit?.sampleMode = edit?.sampleMode == mode ? nil : mode
                         session.brushRevision += 1
                     } label: {
-                        Label(mode.rawValue, systemImage: "eyedropper")
+                        Label(mode.displayName, systemImage: "eyedropper")
                     }.tint(edit?.sampleMode == mode ? .accentColor : .secondary)
                 }
             }
             if let mode = edit?.sampleMode {
-                Text("Click the original layer to set \(mode.rawValue.lowercased()). Click the eyedropper again to stop.")
+                Text("Click the original layer to set \(mode.displayName.lowercased()). Click the eyedropper again to stop.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             VStack(alignment: .leading, spacing: 6) {
                 Text("Auto").font(.caption).foregroundStyle(.secondary)
                 HStack {
                     ForEach(LevelsAuto.allCases, id: \.self) { mode in
-                        Button(mode.rawValue) { session.autoLevels(mode) }
+                        Button(mode.displayName) { session.autoLevels(mode) }
                     }
                 }.disabled(edit?.histogramReady != true)
             }
@@ -88,12 +88,25 @@ struct LevelsSheet: View {
     }
     private func field(_ name: String, _ binding: Binding<Double>, decimals: Int) -> some View {
         let range: ClosedRange<Double> = name == "Gamma" ? 0.1...9.99 : 0...255
+        let title = fieldTitle(name)
         return VStack(alignment: .leading, spacing: 5) {
-            Text(name).font(.caption).foregroundStyle(.secondary)
+            Text(title).font(.caption).foregroundStyle(.secondary)
                 .scrubbable(sensitivity: decimals == 0 ? 1 : 0.01, value: binding, range: range)
-            TextField(name, value: binding, format: .number.precision(.fractionLength(decimals)))
+            TextField(title, value: binding, format: .number.precision(.fractionLength(decimals)))
                 .textFieldStyle(.roundedBorder).multilineTextAlignment(.trailing).frame(width: 80)
                 .accessibilityIdentifier("levels\(name.replacingOccurrences(of: " ", with: ""))")
+        }
+    }
+    /// The label the field shows. `name` itself stays English because it also keys the
+    /// accessibility identifier and the gamma range above.
+    private func fieldTitle(_ name: String) -> String {
+        switch name {
+        case "Input black": String(localized: "Input black")
+        case "Gamma": String(localized: "Gamma")
+        case "Input white": String(localized: "Input white")
+        case "Output black": String(localized: "Output black")
+        case "Output white": String(localized: "Output white")
+        default: name
         }
     }
     private var histogram: some View {
@@ -109,7 +122,7 @@ struct LevelsSheet: View {
             }
             let color: Color = switch settings.channel { case .rgb: .gray; case .red: .red; case .green: .green; case .blue: .blue }
             context.fill(path, with: .color(color))
-        }.accessibilityLabel("Original \(settings.channel.rawValue) histogram")
+        }.accessibilityLabel("Original \(settings.channel.displayName) histogram")
         .help("Linear histogram with automatic vertical scaling. Tall spikes may extend beyond the graph; all tones from 0 to 255 remain included.")
     }
     private func handles(output: Bool) -> some View {
@@ -139,7 +152,9 @@ struct LevelsSheet: View {
                                 $0.current = range
                             }
                         })
-                    .accessibilityLabel(names[index])
+                    // `names` stays English because it also keys the field labels; VoiceOver reads the
+                    // same label the field shows.
+                    .accessibilityLabel(fieldTitle(names[index]))
             }
         }.coordinateSpace(name: output ? "levelsOutput" : "levelsInput")
     }

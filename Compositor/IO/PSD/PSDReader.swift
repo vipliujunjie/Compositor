@@ -180,7 +180,7 @@ nonisolated enum PSDReader {
         try cursor.skip(ranges)
         let nameCount = Int(try cursor.u8())
         let nameBytes = try cursor.bytes(nameCount)
-        layer.name = String(bytes: nameBytes, encoding: .macOSRoman) ?? String(bytes: nameBytes, encoding: .isoLatin1) ?? "Layer"
+        layer.name = String(bytes: nameBytes, encoding: .macOSRoman) ?? String(bytes: nameBytes, encoding: .isoLatin1) ?? String(localized: "Layer")
         let namePad = (4 - ((nameCount + 1) % 4)) % 4
         try cursor.skip(namePad)
         while cursor.offset + 12 <= extraEnd {
@@ -337,7 +337,7 @@ nonisolated enum PSDReader {
             }
             let isGroup = layer.section == 1 || layer.section == 2
             let id = isGroup ? (groups.popLast() ?? UUID()) : UUID()
-            var record = PSDRecord(id: id, name: layer.name.isEmpty ? "Layer" : layer.name)
+            var record = PSDRecord(id: id, name: layer.name.isEmpty ? String(localized: "Layer") : layer.name)
             record.parentID = groups.last
             record.isGroup = isGroup
             record.isVisible = !layer.hidden

@@ -77,6 +77,9 @@ brew install --cask robbietilton-compositor
 ### Works with AI agents
 - AI agents and scripts can build and edit projects directly: a `.comp` is a folder of PNG layers and a manifest, and an open project updates live as it's written. See [Writing Compositor projects](docs/writing-comp-files.md)
 
+### Languages
+- The interface is English and Simplified Chinese, following the Mac's language; System Settings › Language & Region › Applications can pick one for Compositor alone. Translations live in `Compositor/Localizable.xcstrings` — see [Localization](docs/localization.md) to add another language.
+
 ## Requirements
 
 - macOS 26.0 or later on a Mac with Apple silicon

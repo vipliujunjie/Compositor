@@ -11,7 +11,7 @@ struct LassoControls: View {
                     session.cancelLasso()
                     session.marqueeKind = kind
                 })) {
-                    ForEach(LassoKind.marqueeChoices, id: \.self) { Text($0.rawValue).tag($0) }
+                    ForEach(LassoKind.marqueeChoices, id: \.self) { Text($0.displayName).tag($0) }
                 }
                 .pickerStyle(.segmented).labelsHidden().fixedSize()
                 .help("Press M to switch between Rectangle and Ellipse")
@@ -21,7 +21,7 @@ struct LassoControls: View {
                     session.cancelLasso()
                     session.wandMode = mode
                 })) {
-                    ForEach(WandMode.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                    ForEach(WandMode.allCases, id: \.self) { Text($0.displayName).tag($0) }
                 }
                 .pickerStyle(.segmented).labelsHidden().fixedSize()
                 .help("Press Tab to switch between Wand and Object")
@@ -31,7 +31,7 @@ struct LassoControls: View {
                     session.cancelLasso()
                     session.lassoKind = kind
                 })) {
-                    ForEach(LassoKind.lassoChoices, id: \.self) { Text($0.rawValue).tag($0) }
+                    ForEach(LassoKind.lassoChoices, id: \.self) { Text($0.displayName).tag($0) }
                 }
                 .pickerStyle(.segmented).labelsHidden().fixedSize()
                 .help("Press L to switch between Freehand and Polygonal")
@@ -39,7 +39,7 @@ struct LassoControls: View {
             // Shows held Shift/Option (or an outline's mode) live; clicking sets the choice.
             Picker("Mode", selection: Binding(get: { session.displayedSelectionMode },
                                               set: { session.selectionModeChoice = $0 })) {
-                ForEach(SelectionMode.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                ForEach(SelectionMode.allCases, id: \.self) { Text($0.displayName).tag($0) }
             }
             .pickerStyle(.segmented).labelsHidden().fixedSize()
             .help("Hold Shift to add or Option to subtract for one outline")
@@ -51,10 +51,10 @@ struct LassoControls: View {
                     .help(session.tool == .wand && session.wandMode == .object ? "Smooth the detected object outline; turn off for the raw pixel mask" : "Smooth selection edges; turn off for hard pixel edges")
             }
             Divider().frame(height: 18)
-            modifyControl("Expand", amount: $session.selectionExpandAmount) {
+            modifyControl(String(localized: "Expand"), amount: $session.selectionExpandAmount) {
                 session.expandSelection(by: session.selectionExpandAmount)
             }
-            modifyControl("Contract", amount: $session.selectionContractAmount) {
+            modifyControl(String(localized: "Contract"), amount: $session.selectionContractAmount) {
                 session.contractSelection(by: session.selectionContractAmount)
             }
             // Softens the selection's edge, as Select → Feather does.
@@ -68,7 +68,7 @@ struct LassoControls: View {
                     .frame(width: 48).textFieldStyle(.roundedBorder).multilineTextAlignment(.trailing)
                     .arrowSteps(value: { Double(session.selectionFeatherAmount) },
                                 change: { session.selectionFeatherAmount = Int(min(250, max(1, $0))) })
-                    .unitSuffix("px", scrubValue: $session.selectionFeatherAmount,
+                    .unitSuffix(String(localized: "px"), scrubValue: $session.selectionFeatherAmount,
                                 sensitivity: 1, range: 1...250)
             }
             Spacer(minLength: 0)
@@ -128,7 +128,7 @@ struct LassoControls: View {
                     .multilineTextAlignment(.trailing)
                     .arrowSteps(value: { Double(session.objectSelectionSettings.edgeOffset) },
                                 change: { session.objectSelectionSettings.edgeOffset = Int(min(10, max(-10, $0.rounded()))) })
-                    .unitSuffix("px")
+                    .unitSuffix(String(localized: "px"))
             }
             // The bar squeezes text before controls, so without this the label and unit collapse to
             // nothing the moment a selection adds its own buttons, leaving an unlabelled number box.
@@ -148,7 +148,7 @@ struct LassoControls: View {
                 .multilineTextAlignment(.trailing)
                 .arrowSteps(value: { Double(amount.wrappedValue) },
                             change: { amount.wrappedValue = Int(min(500, max(1, $0.rounded()))) })
-                .unitSuffix("px", scrubValue: amount, sensitivity: 1, range: 1...500)
+                .unitSuffix(String(localized: "px"), scrubValue: amount, sensitivity: 1, range: 1...500)
         }
         .disabled(!session.canModifySelection)
         .help("\(title) the selection by this many pixels")
@@ -217,7 +217,7 @@ struct SelectionAmountSheet: View {
                 TextField("Amount", text: $input)
                     .frame(width: 56).textFieldStyle(.roundedBorder)
                     .multilineTextAlignment(.trailing).focused($focused)
-                    .unitSuffix("px")
+                    .unitSuffix(String(localized: "px"))
             }
             Text("Enter a whole number from 1 to \(maximum) px.")
                 .font(.callout).foregroundStyle(.secondary)

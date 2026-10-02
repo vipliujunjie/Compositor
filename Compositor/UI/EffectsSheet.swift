@@ -50,10 +50,10 @@ struct EffectsSheet: View {
             }
             slider("Size", value: Binding(get: { effect.size }, set: { size in
                 session.changeEffects { $0.stroke?.size = size }
-            }), range: 0...20, inputRange: 0...StrokeEffect.maxSize, unit: "px")
+            }), range: 0...20, inputRange: 0...StrokeEffect.maxSize, unit: String(localized: "px"))
             slider("Opacity", value: Binding(get: { CGFloat(effect.opacity * 100) }, set: { value in
                 session.changeEffects { $0.stroke?.opacity = Double(value) / 100 }
-            }), range: 0...100, unit: "%")
+            }), range: 0...100, unit: String(localized: "%"))
         }
     }
 
@@ -67,16 +67,16 @@ struct EffectsSheet: View {
         if let effect {
             slider("Opacity", value: Binding(get: { CGFloat(effect.opacity * 100) }, set: { value in
                 session.changeEffects { $0.shadow?.opacity = Double(value) / 100 }
-            }), range: 0...100, unit: "%")
+            }), range: 0...100, unit: String(localized: "%"))
             slider("Angle", value: Binding(get: { effect.angle }, set: { angle in
                 session.changeEffects { $0.shadow?.angle = angle }
-            }), range: -180...180, unit: "°")
+            }), range: -180...180, unit: String(localized: "°"))
             slider("Distance", value: Binding(get: { effect.distance }, set: { distance in
                 session.changeEffects { $0.shadow?.distance = distance }
-            }), range: 0...100, inputRange: 0...5000, unit: "px")
+            }), range: 0...100, inputRange: 0...5000, unit: String(localized: "px"))
             slider("Blur", value: Binding(get: { effect.blur }, set: { blur in
                 session.changeEffects { $0.shadow?.blur = blur }
-            }), range: 0...100, inputRange: 0...500, unit: "px")
+            }), range: 0...100, inputRange: 0...500, unit: String(localized: "px"))
         }
     }
 
@@ -90,7 +90,7 @@ struct EffectsSheet: View {
         if let effect {
             slider("Opacity", value: Binding(get: { CGFloat(effect.opacity * 100) }, set: { value in
                 session.changeEffects { $0.colorOverlay?.opacity = Double(value) / 100 }
-            }), range: 0...100, unit: "%")
+            }), range: 0...100, unit: String(localized: "%"))
         }
     }
 
@@ -104,16 +104,16 @@ struct EffectsSheet: View {
         if let effect {
             slider("Opacity", value: Binding(get: { CGFloat(effect.opacity * 100) }, set: { value in
                 session.changeEffects { $0.innerShadow?.opacity = Double(value) / 100 }
-            }), range: 0...100, unit: "%")
+            }), range: 0...100, unit: String(localized: "%"))
             slider("Angle", value: Binding(get: { effect.angle }, set: { angle in
                 session.changeEffects { $0.innerShadow?.angle = angle }
-            }), range: -180...180, unit: "°")
+            }), range: -180...180, unit: String(localized: "°"))
             slider("Distance", value: Binding(get: { effect.distance }, set: { distance in
                 session.changeEffects { $0.innerShadow?.distance = distance }
-            }), range: 0...50, inputRange: 0...5000, unit: "px")
+            }), range: 0...50, inputRange: 0...5000, unit: String(localized: "px"))
             slider("Blur", value: Binding(get: { effect.blur }, set: { blur in
                 session.changeEffects { $0.innerShadow?.blur = blur }
-            }), range: 0...100, inputRange: 0...500, unit: "px")
+            }), range: 0...100, inputRange: 0...500, unit: String(localized: "px"))
         }
     }
 
@@ -127,10 +127,10 @@ struct EffectsSheet: View {
         if let effect {
             slider("Size", value: Binding(get: { effect.size }, set: { size in
                 session.changeEffects { $0.outerGlow?.size = size }
-            }), range: 0...100, inputRange: 0...500, unit: "px")
+            }), range: 0...100, inputRange: 0...500, unit: String(localized: "px"))
             slider("Opacity", value: Binding(get: { CGFloat(effect.opacity * 100) }, set: { value in
                 session.changeEffects { $0.outerGlow?.opacity = Double(value) / 100 }
-            }), range: 0...100, unit: "%")
+            }), range: 0...100, unit: String(localized: "%"))
         }
     }
 
@@ -144,10 +144,10 @@ struct EffectsSheet: View {
         if let effect {
             slider("Size", value: Binding(get: { effect.size }, set: { size in
                 session.changeEffects { $0.innerGlow?.size = size }
-            }), range: 0...100, inputRange: 0...500, unit: "px")
+            }), range: 0...100, inputRange: 0...500, unit: String(localized: "px"))
             slider("Opacity", value: Binding(get: { CGFloat(effect.opacity * 100) }, set: { value in
                 session.changeEffects { $0.innerGlow?.opacity = Double(value) / 100 }
-            }), range: 0...100, unit: "%")
+            }), range: 0...100, unit: String(localized: "%"))
         }
     }
 
@@ -163,11 +163,11 @@ struct EffectsSheet: View {
                 .contentShape(shape)
         }
         .buttonStyle(.plain)
-        .help(kind.rawValue + " color")
-        .accessibilityLabel(kind.rawValue + " color")
+        .help(String(localized: "\(kind.displayName) color"))
+        .accessibilityLabel(String(localized: "\(kind.displayName) color"))
     }
 
-    private func slider(_ title: String, value: Binding<CGFloat>, range: ClosedRange<CGFloat>,
+    private func slider(_ title: LocalizedStringKey, value: Binding<CGFloat>, range: ClosedRange<CGFloat>,
                         inputRange: ClosedRange<CGFloat>? = nil, unit: String) -> some View {
         let limits = inputRange ?? range
         let setAmount: (Double) -> Void = { amount in

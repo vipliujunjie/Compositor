@@ -258,7 +258,7 @@ extension EditorSession {
             guard let image = context.makeImage() else { throw ExportError.render }
             let mask = LayerMask(asset: try LayerMask.asset(from: image))
             finishOpacityEdit()
-            beginEdit(revealing ? "Reveal Selection" : "Hide Selection")
+            beginEdit(revealing ? String(localized: "Reveal Selection") : String(localized: "Hide Selection"))
             document?.layers[index].mask = mask
             document?.selection = nil
             isMaskSelected = true
@@ -271,7 +271,7 @@ extension EditorSession {
         guard canEditMask, activeLayer?.mask == nil, let mask = LayerMask.solid(revealing: revealing),
               let index = document?.layers.firstIndex(where: { $0.id == activeLayerID }) else { return }
         finishOpacityEdit()
-        beginEdit(revealing ? "Add Reveal-All Mask" : "Add Hide-All Mask")
+        beginEdit(revealing ? String(localized: "Add Reveal-All Mask") : String(localized: "Add Hide-All Mask"))
         document?.layers[index].mask = mask
         isMaskSelected = true
         endEdit()
@@ -280,7 +280,7 @@ extension EditorSession {
         guard canEditMask, activeLayer?.mask != nil,
               let index = document?.layers.firstIndex(where: { $0.id == activeLayerID }) else { return }
         finishOpacityEdit()
-        beginEdit(activeLayer?.mask?.isEnabled == true ? "Disable Layer Mask" : "Enable Layer Mask")
+        beginEdit(activeLayer?.mask?.isEnabled == true ? String(localized: "Disable Layer Mask") : String(localized: "Enable Layer Mask"))
         document?.layers[index].mask?.isEnabled.toggle()
         endEdit()
     }
@@ -288,7 +288,7 @@ extension EditorSession {
         guard canEditMask, activeLayer?.mask != nil,
               let index = document?.layers.firstIndex(where: { $0.id == activeLayerID }) else { return }
         finishOpacityEdit()
-        beginEdit("Delete Layer Mask")
+        beginEdit(String(localized: "Delete Layer Mask"))
         document?.layers[index].mask = nil
         isMaskSelected = false
         endEdit()
@@ -309,7 +309,7 @@ extension EditorSession {
         commitTransform()
         finishOpacityEdit()
         mask.placement = from.maskTransform
-        beginEdit(layers[index].mask == nil ? "Copy Layer Mask" : "Replace Layer Mask")
+        beginEdit(layers[index].mask == nil ? String(localized: "Copy Layer Mask") : String(localized: "Replace Layer Mask"))
         document?.layers[index].mask = mask
         selectLayer(target)
         isMaskSelected = true
@@ -321,7 +321,7 @@ extension EditorSession {
               let mask = document?.layers[index].mask else { return }
         commitTransform()
         finishOpacityEdit()
-        beginEdit(mask.isLinked ? "Unlink Layer Mask" : "Link Layer Mask")
+        beginEdit(mask.isLinked ? String(localized: "Unlink Layer Mask") : String(localized: "Link Layer Mask"))
         document?.layers[index].mask?.isLinked.toggle()
         endEdit()
     }
@@ -356,7 +356,7 @@ extension EditorSession {
                                                      background: LayerMask.background(of: mask.asset.thumbnail))
                 let asset = moved.image === mask.asset.image ? mask.asset : try LayerMask.asset(from: moved.image)
                 finishOpacityEdit()
-                beginEdit("Distort Layer Mask")
+                beginEdit(String(localized: "Distort Layer Mask"))
                 document?.layers[index].mask = LayerMask(asset: asset, isEnabled: mask.isEnabled,
                     placement: moved.transform.samePlacement(as: layer.transform) ? nil : moved.transform, isLinked: mask.isLinked)
                 endEdit()
@@ -366,7 +366,7 @@ extension EditorSession {
         let placement = edit.draft.samePlacement(as: layer.transform) ? nil : edit.draft
         guard placement != mask.placement else { return }
         finishOpacityEdit()
-        beginEdit("Transform Layer Mask")
+        beginEdit(String(localized: "Transform Layer Mask"))
         document?.layers[index].mask?.placement = placement
         endEdit()
     }

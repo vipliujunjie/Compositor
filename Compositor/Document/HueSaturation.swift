@@ -6,6 +6,19 @@ nonisolated enum ColorRange: String, CaseIterable, Sendable, Hashable, Codable {
     case master = "Master", reds = "Reds", yellows = "Yellows", greens = "Greens"
     case cyans = "Cyans", blues = "Blues", magentas = "Magentas"
 
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .master: String(localized: "Master")
+        case .reds: String(localized: "Reds")
+        case .yellows: String(localized: "Yellows")
+        case .greens: String(localized: "Greens")
+        case .cyans: String(localized: "Cyans")
+        case .blues: String(localized: "Blues")
+        case .magentas: String(localized: "Magentas")
+        }
+    }
+
     /// Photoshop's starting hue band: falloff start, range start, range end, falloff end.
     var defaultBand: HueBand {
         switch self {
@@ -134,6 +147,14 @@ nonisolated struct HueBand: Equatable, Sendable, Codable {
 /// Which eyedropper is armed while the Hue/Saturation panel is open.
 nonisolated enum HueSampleMode: String, CaseIterable, Sendable {
     case replace = "Sample", add = "Add", remove = "Remove"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .replace: String(localized: "Sample")
+        case .add: String(localized: "Add")
+        case .remove: String(localized: "Remove")
+        }
+    }
     /// All three are eyedroppers; Add and Remove carry a small badge.
     var symbol: String { "eyedropper" }
     var badge: String? {
@@ -145,9 +166,9 @@ nonisolated enum HueSampleMode: String, CaseIterable, Sendable {
     }
     var help: String {
         switch self {
-        case .replace: "Click the image to center this range on that color"
-        case .add: "Click the image to widen this range to include that color"
-        case .remove: "Click the image to narrow this range to exclude that color"
+        case .replace: String(localized: "Click the image to center this range on that color")
+        case .add: String(localized: "Click the image to widen this range to include that color")
+        case .remove: String(localized: "Click the image to narrow this range to exclude that color")
         }
     }
 }
@@ -532,7 +553,7 @@ extension EditorSession {
         guard let adjusted = await adjustedPixels(job),
               let index = document?.layers.firstIndex(where: { $0.id == edit.layerID }),
               let current = document?.layers[index], current.asset?.image === edit.original.image else { return }
-        beginEdit("Hue/Saturation")
+        beginEdit(String(localized: "Hue/Saturation"))
         document?.layers[index] = ImageLayer(id: current.id,
             asset: ImportedImage(image: adjusted.image, thumbnail: adjusted.thumbnail ?? adjusted.image, name: current.name),
             name: current.name, isVisible: current.isVisible, transform: current.transform, parentID: current.parentID,

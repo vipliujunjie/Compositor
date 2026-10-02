@@ -22,25 +22,25 @@ struct FilterSheet: View {
             case .curves:
                 CurvesControls(settings: Binding(get: { settings.curves }, set: { new in update { $0.curves = new } }))
             case .exposure:
-                control("Exposure", \.exposure.exposure, range: ExposureSettings.exposureRange, unit: "", decimals: 2, logarithmic: false)
-                control("Offset", \.exposure.offset, range: ExposureSettings.offsetRange, unit: "", decimals: 4, logarithmic: false)
-                control("Gamma", \.exposure.gamma, range: ExposureSettings.gammaRange, unit: "", decimals: 2, logarithmic: true)
+                control(String(localized: "Exposure"), \.exposure.exposure, range: ExposureSettings.exposureRange, unit: "", decimals: 2, logarithmic: false)
+                control(String(localized: "Offset"), \.exposure.offset, range: ExposureSettings.offsetRange, unit: "", decimals: 4, logarithmic: false)
+                control(String(localized: "Gamma"), \.exposure.gamma, range: ExposureSettings.gammaRange, unit: "", decimals: 2, logarithmic: true)
             case .gradientMap:
                 GradientMapControls(settings: Binding(get: { settings.gradientMap }, set: { new in update { $0.gradientMap = new } }),
                                     pick: { session.openGradientMapColorPicker(highlights: $0) })
             case .blackWhite:
                 // Each slider says how bright that family of colors becomes, as Photoshop's do.
-                control("Reds", \.blackWhite.reds, range: BlackWhiteSettings.range, unit: "%", decimals: 0, logarithmic: false, track: .luminance(0))
-                control("Yellows", \.blackWhite.yellows, range: BlackWhiteSettings.range, unit: "%", decimals: 0, logarithmic: false, track: .luminance(60))
-                control("Greens", \.blackWhite.greens, range: BlackWhiteSettings.range, unit: "%", decimals: 0, logarithmic: false, track: .luminance(120))
-                control("Cyans", \.blackWhite.cyans, range: BlackWhiteSettings.range, unit: "%", decimals: 0, logarithmic: false, track: .luminance(180))
-                control("Blues", \.blackWhite.blues, range: BlackWhiteSettings.range, unit: "%", decimals: 0, logarithmic: false, track: .luminance(240))
-                control("Magentas", \.blackWhite.magentas, range: BlackWhiteSettings.range, unit: "%", decimals: 0, logarithmic: false, track: .luminance(300))
+                control(String(localized: "Reds"), \.blackWhite.reds, range: BlackWhiteSettings.range, unit: String(localized: "%"), decimals: 0, logarithmic: false, track: .luminance(0))
+                control(String(localized: "Yellows"), \.blackWhite.yellows, range: BlackWhiteSettings.range, unit: String(localized: "%"), decimals: 0, logarithmic: false, track: .luminance(60))
+                control(String(localized: "Greens"), \.blackWhite.greens, range: BlackWhiteSettings.range, unit: String(localized: "%"), decimals: 0, logarithmic: false, track: .luminance(120))
+                control(String(localized: "Cyans"), \.blackWhite.cyans, range: BlackWhiteSettings.range, unit: String(localized: "%"), decimals: 0, logarithmic: false, track: .luminance(180))
+                control(String(localized: "Blues"), \.blackWhite.blues, range: BlackWhiteSettings.range, unit: String(localized: "%"), decimals: 0, logarithmic: false, track: .luminance(240))
+                control(String(localized: "Magentas"), \.blackWhite.magentas, range: BlackWhiteSettings.range, unit: String(localized: "%"), decimals: 0, logarithmic: false, track: .luminance(300))
                 Toggle("Tint", isOn: flag(\.blackWhite.tint))
                     .help("Color the result while keeping its tones, for a sepia or a cyanotype")
                 if settings.blackWhite.tint {
-                    control("Hue", \.blackWhite.tintHue, range: 0...360, unit: "°", decimals: 0, logarithmic: false, track: .plain)
-                    control("Saturation", \.blackWhite.tintSaturation, range: 0...100, unit: "%", decimals: 0, logarithmic: false,
+                    control(String(localized: "Hue"), \.blackWhite.tintHue, range: 0...360, unit: String(localized: "°"), decimals: 0, logarithmic: false, track: .plain)
+                    control(String(localized: "Saturation"), \.blackWhite.tintSaturation, range: 0...100, unit: String(localized: "%"), decimals: 0, logarithmic: false,
                             track: .saturation(settings.blackWhite.tintHue))
                 }
             case .cameraRaw:
@@ -48,50 +48,50 @@ struct FilterSheet: View {
                     .frame(maxHeight: .infinity, alignment: .top)
             case .colorBalance:
                 Text("Shadows").font(.headline)
-                control("Cyan / Red", \.colorBalance.shadowCyanRed, range: ColorBalanceSettings.range, unit: "", decimals: 0, logarithmic: false, track: Self.cyanRedTrack)
-                control("Magenta / Green", \.colorBalance.shadowMagentaGreen, range: ColorBalanceSettings.range, unit: "", decimals: 0, logarithmic: false, track: Self.magentaGreenTrack)
-                control("Yellow / Blue", \.colorBalance.shadowYellowBlue, range: ColorBalanceSettings.range, unit: "", decimals: 0, logarithmic: false, track: Self.yellowBlueTrack)
+                control(String(localized: "Cyan / Red"), \.colorBalance.shadowCyanRed, range: ColorBalanceSettings.range, unit: "", decimals: 0, logarithmic: false, track: Self.cyanRedTrack)
+                control(String(localized: "Magenta / Green"), \.colorBalance.shadowMagentaGreen, range: ColorBalanceSettings.range, unit: "", decimals: 0, logarithmic: false, track: Self.magentaGreenTrack)
+                control(String(localized: "Yellow / Blue"), \.colorBalance.shadowYellowBlue, range: ColorBalanceSettings.range, unit: "", decimals: 0, logarithmic: false, track: Self.yellowBlueTrack)
                 Text("Midtones").font(.headline)
-                control("Cyan / Red", \.colorBalance.midCyanRed, range: ColorBalanceSettings.range, unit: "", decimals: 0, logarithmic: false, track: Self.cyanRedTrack)
-                control("Magenta / Green", \.colorBalance.midMagentaGreen, range: ColorBalanceSettings.range, unit: "", decimals: 0, logarithmic: false, track: Self.magentaGreenTrack)
-                control("Yellow / Blue", \.colorBalance.midYellowBlue, range: ColorBalanceSettings.range, unit: "", decimals: 0, logarithmic: false, track: Self.yellowBlueTrack)
+                control(String(localized: "Cyan / Red"), \.colorBalance.midCyanRed, range: ColorBalanceSettings.range, unit: "", decimals: 0, logarithmic: false, track: Self.cyanRedTrack)
+                control(String(localized: "Magenta / Green"), \.colorBalance.midMagentaGreen, range: ColorBalanceSettings.range, unit: "", decimals: 0, logarithmic: false, track: Self.magentaGreenTrack)
+                control(String(localized: "Yellow / Blue"), \.colorBalance.midYellowBlue, range: ColorBalanceSettings.range, unit: "", decimals: 0, logarithmic: false, track: Self.yellowBlueTrack)
                 Text("Highlights").font(.headline)
-                control("Cyan / Red", \.colorBalance.highlightCyanRed, range: ColorBalanceSettings.range, unit: "", decimals: 0, logarithmic: false, track: Self.cyanRedTrack)
-                control("Magenta / Green", \.colorBalance.highlightMagentaGreen, range: ColorBalanceSettings.range, unit: "", decimals: 0, logarithmic: false, track: Self.magentaGreenTrack)
-                control("Yellow / Blue", \.colorBalance.highlightYellowBlue, range: ColorBalanceSettings.range, unit: "", decimals: 0, logarithmic: false, track: Self.yellowBlueTrack)
+                control(String(localized: "Cyan / Red"), \.colorBalance.highlightCyanRed, range: ColorBalanceSettings.range, unit: "", decimals: 0, logarithmic: false, track: Self.cyanRedTrack)
+                control(String(localized: "Magenta / Green"), \.colorBalance.highlightMagentaGreen, range: ColorBalanceSettings.range, unit: "", decimals: 0, logarithmic: false, track: Self.magentaGreenTrack)
+                control(String(localized: "Yellow / Blue"), \.colorBalance.highlightYellowBlue, range: ColorBalanceSettings.range, unit: "", decimals: 0, logarithmic: false, track: Self.yellowBlueTrack)
                 Toggle("Preserve Luminosity", isOn: flag(\.colorBalance.preserveLuminosity))
                     .help("Put each pixel's brightness back afterwards, so only the color moves")
             case .grain:
-                control("Amount", \.grain.amount, range: GrainSettings.amountRange, unit: "", decimals: 0, logarithmic: false)
-                control("Size", \.grain.size, range: GrainSettings.sizeRange, unit: "px", decimals: 1, logarithmic: true)
-                control("Roughness", \.grain.roughness, range: GrainSettings.roughnessRange, unit: "", decimals: 0, logarithmic: false)
+                control(String(localized: "Amount"), \.grain.amount, range: GrainSettings.amountRange, unit: "", decimals: 0, logarithmic: false)
+                control(String(localized: "Size"), \.grain.size, range: GrainSettings.sizeRange, unit: String(localized: "px"), decimals: 1, logarithmic: true)
+                control(String(localized: "Roughness"), \.grain.roughness, range: GrainSettings.roughnessRange, unit: "", decimals: 0, logarithmic: false)
             case .removeBackground:
                 Text("Hide the background behind a layer mask, keeping the foreground subjects. The pixels stay, so the background can be painted back at any time.")
                     .fixedSize(horizontal: false, vertical: true)
                 Picker("Quality", selection: Binding(get: { settings.backgroundQuality },
                                                      set: { new in update { $0.backgroundQuality = new } })) {
-                    ForEach(BackgroundQuality.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                    ForEach(BackgroundQuality.allCases, id: \.self) { Text($0.displayName).tag($0) }
                 }
                 .pickerStyle(.segmented).labelsHidden()
                 .help("Basic is quick; Advanced refines the mask against the layer's own detail, for hair and fur")
                 if settings.backgroundQuality == .advanced {
-                    control("Refine", \.refineEdges, range: 0...40, unit: "px", decimals: 0, logarithmic: false)
+                    control(String(localized: "Refine"), \.refineEdges, range: 0...40, unit: String(localized: "px"), decimals: 0, logarithmic: false)
                         .help("Pull the mask onto the image's own edges, which recovers hair and fur")
-                    control("Contrast", \.matteContrast, range: 0...100, unit: "%", decimals: 0, logarithmic: false)
+                    control(String(localized: "Contrast"), \.matteContrast, range: 0...100, unit: String(localized: "%"), decimals: 0, logarithmic: false)
                         .help("Clear the haze that leaves background showing through thin areas")
-                    control("Shift Edge", \.shiftEdge, range: -10...10, unit: "px", decimals: 0, logarithmic: false)
+                    control(String(localized: "Shift Edge"), \.shiftEdge, range: -10...10, unit: String(localized: "px"), decimals: 0, logarithmic: false)
                         .help("Shrink the mask to drop the rim of background color around the subject, or grow it")
                 }
             case .contentAwareFill:
                 Text("Fill the selection using surrounding pixels from this layer.")
                     .fixedSize(horizontal: false, vertical: true)
             case .gaussianBlur:
-                control("Radius", \.radius, range: 0.1...250, unit: "px", decimals: 1, logarithmic: true)
+                control(String(localized: "Radius"), \.radius, range: 0.1...250, unit: String(localized: "px"), decimals: 1, logarithmic: true)
             case .motionBlur:
-                control("Angle", \.angle, range: -90...90, unit: "°", decimals: 0, logarithmic: false)
-                control("Distance", \.distance, range: 1...2000, unit: "px", decimals: 0, logarithmic: true)
+                control(String(localized: "Angle"), \.angle, range: -90...90, unit: String(localized: "°"), decimals: 0, logarithmic: false)
+                control(String(localized: "Distance"), \.distance, range: 1...2000, unit: String(localized: "px"), decimals: 0, logarithmic: true)
             case .addNoise:
-                control("Amount", \.amount, range: 0.1...400, unit: "%", decimals: 1, logarithmic: true)
+                control(String(localized: "Amount"), \.amount, range: 0.1...400, unit: String(localized: "%"), decimals: 1, logarithmic: true)
                 HStack(spacing: 10) {
                     Text("Distribution")
                     Picker("Distribution", selection: flag(\.gaussian)) {
@@ -119,24 +119,24 @@ struct FilterSheet: View {
                     .help("Choose the vignette color")
                     Spacer()
                 }
-                control("Amount", \.vignetteAmount, range: 0...100, unit: "%", decimals: 0, logarithmic: false)
+                control(String(localized: "Amount"), \.vignetteAmount, range: 0...100, unit: String(localized: "%"), decimals: 0, logarithmic: false)
                     .help("Blend the chosen color into the edges while keeping the center unchanged")
-                control("Midpoint", \.vignetteMidpoint, range: 0...100, unit: "%", decimals: 0, logarithmic: false)
-                control("Roundness", \.vignetteRoundness, range: -100...100, unit: "", decimals: 0, logarithmic: false)
-                control("Feather", \.vignetteFeather, range: 0...100, unit: "%", decimals: 0, logarithmic: false)
-                control("Highlights", \.vignetteHighlights, range: 0...100, unit: "%", decimals: 0, logarithmic: false)
+                control(String(localized: "Midpoint"), \.vignetteMidpoint, range: 0...100, unit: String(localized: "%"), decimals: 0, logarithmic: false)
+                control(String(localized: "Roundness"), \.vignetteRoundness, range: -100...100, unit: "", decimals: 0, logarithmic: false)
+                control(String(localized: "Feather"), \.vignetteFeather, range: 0...100, unit: String(localized: "%"), decimals: 0, logarithmic: false)
+                control(String(localized: "Highlights"), \.vignetteHighlights, range: 0...100, unit: String(localized: "%"), decimals: 0, logarithmic: false)
                     .help("Protect bright areas near the edge")
             case .bloomGlow:
-                control("Amount", \.bloomAmount, range: 0...100, unit: "%", decimals: 0, logarithmic: false)
-                control("Radius", \.bloomRadius, range: 1...150, unit: "px", decimals: 0, logarithmic: true)
+                control(String(localized: "Amount"), \.bloomAmount, range: 0...100, unit: String(localized: "%"), decimals: 0, logarithmic: false)
+                control(String(localized: "Radius"), \.bloomRadius, range: 1...150, unit: String(localized: "px"), decimals: 0, logarithmic: true)
             case .tonalContrast:
-                control("Amount", \.tonalAmount, range: 0...100, unit: "%", decimals: 0, logarithmic: false)
-                control("Shadows", \.tonalShadows, range: -100...100, unit: "%", decimals: 0, logarithmic: false)
-                control("Midtones", \.tonalMidtones, range: -100...100, unit: "%", decimals: 0, logarithmic: false)
-                control("Highlights", \.tonalHighlights, range: -100...100, unit: "%", decimals: 0, logarithmic: false)
-                control("Radius", \.tonalRadius, range: 1...100, unit: "px", decimals: 0, logarithmic: true)
+                control(String(localized: "Amount"), \.tonalAmount, range: 0...100, unit: String(localized: "%"), decimals: 0, logarithmic: false)
+                control(String(localized: "Shadows"), \.tonalShadows, range: -100...100, unit: String(localized: "%"), decimals: 0, logarithmic: false)
+                control(String(localized: "Midtones"), \.tonalMidtones, range: -100...100, unit: String(localized: "%"), decimals: 0, logarithmic: false)
+                control(String(localized: "Highlights"), \.tonalHighlights, range: -100...100, unit: String(localized: "%"), decimals: 0, logarithmic: false)
+                control(String(localized: "Radius"), \.tonalRadius, range: 1...100, unit: String(localized: "px"), decimals: 0, logarithmic: true)
             case .lensCorrection:
-                control("Remove Distortion", \.distortion, range: -100...100, unit: "", decimals: 0, logarithmic: false)
+                control(String(localized: "Remove Distortion"), \.distortion, range: -100...100, unit: "", decimals: 0, logarithmic: false)
                 Text("Positive straightens lines that bow outward (barrel); negative, lines that bow inward (pincushion).")
                     .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
@@ -186,32 +186,32 @@ struct FilterSheet: View {
         Picker("Style", selection: Binding(get: { dither.style }, set: { new in update { $0.dither.style = new } })) {
             ForEach(DitherStyle.groups.indices, id: \.self) { group in
                 if group > 0 { Divider() }
-                ForEach(DitherStyle.groups[group], id: \.self) { Text($0.rawValue).tag($0) }
+                ForEach(DitherStyle.groups[group], id: \.self) { Text($0.displayName).tag($0) }
             }
         }
         if dither.style.usesPixelSize {
-        control("Pixel Size", \.dither.pixelSize, range: DitherSettings.pixelSizeRange, unit: "px", decimals: 0, logarithmic: false)
+        control(String(localized: "Pixel Size"), \.dither.pixelSize, range: DitherSettings.pixelSizeRange, unit: String(localized: "px"), decimals: 0, logarithmic: false)
             .help("Make each dithered pixel this many pixels across, for a chunky old-screen look")
         }
         if dither.style == .ascii {
-            control("Text Size", \.dither.textSize, range: DitherSettings.textSizeRange, unit: "px", decimals: 0, logarithmic: false)
+            control(String(localized: "Text Size"), \.dither.textSize, range: DitherSettings.textSizeRange, unit: String(localized: "px"), decimals: 0, logarithmic: false)
                 .help("The height of each line of characters")
         }
         if dither.style == .scanlines {
-            control("Line Spacing", \.dither.lineSpacing, range: DitherSettings.lineSpacingRange, unit: "px", decimals: 0, logarithmic: false)
+            control(String(localized: "Line Spacing"), \.dither.lineSpacing, range: DitherSettings.lineSpacingRange, unit: String(localized: "px"), decimals: 0, logarithmic: false)
                 .help("How far apart the screen's lines are")
-            control("Glow", \.dither.glow, range: 0...100, unit: "%", decimals: 0, logarithmic: false)
+            control(String(localized: "Glow"), \.dither.glow, range: 0...100, unit: String(localized: "%"), decimals: 0, logarithmic: false)
                 .help("Light blooming around the lines, like a CRT's phosphors")
-            control("Dots", \.dither.dots, range: 0...100, unit: "%", decimals: 0, logarithmic: false)
+            control(String(localized: "Dots"), \.dither.dots, range: 0...100, unit: String(localized: "%"), decimals: 0, logarithmic: false)
                 .help("Break the lines into glowing beads")
-            control("Wobble", \.dither.wobble, range: DitherSettings.wobbleRange, unit: "px", decimals: 0, logarithmic: false)
+            control(String(localized: "Wobble"), \.dither.wobble, range: DitherSettings.wobbleRange, unit: String(localized: "px"), decimals: 0, logarithmic: false)
                 .help("Make the lines waver sideways down the screen, like a CRT losing sync")
         }
         if dither.style.isHalftone {
-            control("Cell Size", \.dither.cellSize, range: DitherSettings.cellSizeRange, unit: "px", decimals: 0, logarithmic: false)
+            control(String(localized: "Cell Size"), \.dither.cellSize, range: DitherSettings.cellSizeRange, unit: String(localized: "px"), decimals: 0, logarithmic: false)
         }
         if dither.style.isHalftone {
-            control("Angle", \.dither.angle, range: -90...90, unit: "°", decimals: 0, logarithmic: false)
+            control(String(localized: "Angle"), \.dither.angle, range: -90...90, unit: String(localized: "°"), decimals: 0, logarithmic: false)
         }
         if dither.style == .ascii {
             HStack(spacing: 10) {
@@ -222,20 +222,20 @@ struct FilterSheet: View {
             .help("The characters to draw with, in any order: each spot gets the one whose ink best matches its tone")
         }
         if dither.style.hasTones {
-            control("Tones", \.dither.levels, range: DitherSettings.levelsRange, unit: "", decimals: 0, logarithmic: false)
+            control(String(localized: "Tones"), \.dither.levels, range: DitherSettings.levelsRange, unit: "", decimals: 0, logarithmic: false)
                 .help("Tones per channel: 2 is pure black and white")
         }
         if dither.style.diffuses {
-            control("Diffusion", \.dither.diffusion, range: 0...100, unit: "%", decimals: 0, logarithmic: false)
+            control(String(localized: "Diffusion"), \.dither.diffusion, range: 0...100, unit: String(localized: "%"), decimals: 0, logarithmic: false)
                 .help("How much of each pixel's error spreads to its neighbors. Less gives flatter areas")
         }
-        control("Density", \.dither.density, range: -100...100, unit: "", decimals: 0, logarithmic: false)
+        control(String(localized: "Density"), \.dither.density, range: -100...100, unit: "", decimals: 0, logarithmic: false)
             .help("More ink (darker) or less before dithering")
-        control("Contrast", \.dither.contrast, range: -100...100, unit: "", decimals: 0, logarithmic: false)
+        control(String(localized: "Contrast"), \.dither.contrast, range: -100...100, unit: "", decimals: 0, logarithmic: false)
         // A menu, like Style: the three choices as segments are wider than the panel, which then flips between
         // squeezing the row and wrapping it, resizing itself at every slider step.
         Picker("Colors", selection: Binding(get: { dither.colors }, set: { new in update { $0.dither.colors = new } })) {
-            ForEach(DitherColors.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+            ForEach(DitherColors.allCases, id: \.self) { Text($0.displayName).tag($0) }
         }
         .fixedSize()
         if dither.colors == .twoColors {
@@ -249,7 +249,7 @@ struct FilterSheet: View {
         }
         if dither.pixelSize > 1, dither.style.usesPixelSize {
             Picker("Pixel Shape", selection: Binding(get: { dither.pixelShape }, set: { new in update { $0.dither.pixelShape = new } })) {
-                ForEach(DitherPixelShape.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                ForEach(DitherPixelShape.allCases, id: \.self) { Text($0.displayName).tag($0) }
             }
             .fixedSize()
             .help("Draw each chunky pixel as a solid square, or as a round dot like a dot-matrix screen")
@@ -260,7 +260,7 @@ struct FilterSheet: View {
         }
     }
 
-    private func swatch(_ color: AdjustmentColor, help: String, action: @escaping () -> Void) -> some View {
+    private func swatch(_ color: AdjustmentColor, help: LocalizedStringKey, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             let shape = RoundedRectangle(cornerRadius: 6, style: .continuous)
             shape.fill(Color(.sRGB, red: color.red, green: color.green, blue: color.blue))
@@ -307,7 +307,7 @@ struct FilterSheet: View {
                             range: range)
             if let track {
                 CameraRawSlider(value: settings[keyPath: key], range: range, track: track,
-                                help: "\(title). Double-click to reset.",
+                                help: String(localized: "\(title). Double-click to reset."),
                                 onChange: { value in update { $0[keyPath: key] = (value * step).rounded() / step } },
                                 onReset: reset)
             } else {
@@ -339,8 +339,8 @@ struct GradientMapControls: View {
                 .overlay { RoundedRectangle(cornerRadius: 4, style: .continuous).strokeBorder(.black.opacity(0.35)) }
                 .accessibilityHidden(true)
             HStack(spacing: 20) {
-                swatch("Shadows", settings.shadows) { pick(false) }
-                swatch("Highlights", settings.highlights) { pick(true) }
+                swatch(String(localized: "Shadows"), settings.shadows) { pick(false) }
+                swatch(String(localized: "Highlights"), settings.highlights) { pick(true) }
                 Spacer()
             }
             Toggle("Reverse", isOn: $settings.reversed)
@@ -361,8 +361,8 @@ struct GradientMapControls: View {
                     .contentShape(shape)
             }
             .buttonStyle(.plain)
-            .help("Choose the \(title.lowercased()) color")
-            .accessibilityLabel("\(title) color")
+            .help(String(localized: "Choose the \(title.lowercased()) color"))
+            .accessibilityLabel(String(localized: "\(title) color"))
             Text(title)
         }
     }

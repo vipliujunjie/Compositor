@@ -13,3 +13,4 @@ If you've been asked to make or change an image in a `.comp` project, you don't 
 - Match the surrounding code: its naming, its comment style and density.
 - American spelling in code, comments and UI ("color", not "colour").
 - The project file format is described in [docs/project-format.md](docs/project-format.md). A change to what's saved means a format version bump there and in `ProjectManifest.current`.
+- New interface text is written as an English literal in a localizable position, and its translation goes in `Compositor/Localizable.xcstrings`. A label that travels through a `String` — an AppKit title, an enum's display name, a value passed into a view — needs `String(localized: "…")` or a `LocalizedStringKey` parameter, or it will never reach the catalog. See [docs/localization.md](docs/localization.md).

@@ -211,6 +211,17 @@ nonisolated struct LayerEffects: Codable, Equatable, Sendable {
 
 nonisolated enum LayerEffectKind: String, CaseIterable, Sendable {
     case stroke = "Stroke", shadow = "Drop Shadow", colorOverlay = "Color Overlay", innerShadow = "Inner Shadow", outerGlow = "Outer Glow", innerGlow = "Inner Glow"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .stroke: String(localized: "Stroke")
+        case .shadow: String(localized: "Drop Shadow")
+        case .colorOverlay: String(localized: "Color Overlay")
+        case .innerShadow: String(localized: "Inner Shadow")
+        case .outerGlow: String(localized: "Outer Glow")
+        case .innerGlow: String(localized: "Inner Glow")
+        }
+    }
 }
 
 struct LayerEffectSelection: Equatable {
@@ -256,7 +267,7 @@ extension EditorSession {
             effects.innerGlow = InnerGlowEffect()
         default: break
         }
-        setEffects(effects, on: id, name: "Add " + kind.rawValue)
+        setEffects(effects, on: id, name: String(localized: "Add \(kind.displayName)"))
         selectEffect(kind, on: id, editing: true)
         effectsEditingOriginal = original
     }
@@ -291,14 +302,14 @@ extension EditorSession {
             case .outerGlow: effects.outerGlow = original.outerGlow
             case .innerGlow: effects.innerGlow = original.innerGlow
             }
-            setEffects(effects, on: editing.layerID, name: "Cancel " + editing.kind.rawValue)
+            setEffects(effects, on: editing.layerID, name: String(localized: "Cancel \(editing.kind.displayName)"))
         }
         effectsEditing = nil
         effectsEditingOriginal = nil
         if selectedEffect == nil { effectSelection = nil }
     }
 
-    func setEffects(_ effects: LayerEffects, on id: UUID? = nil, name: String = "Layer Effects") {
+    func setEffects(_ effects: LayerEffects, on id: UUID? = nil, name: String = String(localized: "Layer Effects")) {
         guard canEditLayers, effects.isValid,
               let index = document?.layers.firstIndex(where: { $0.id == (id ?? activeLayerID) }),
               document?.layers[index].isGroup == false, document?.layers[index].asset != nil,
@@ -316,7 +327,7 @@ extension EditorSession {
               layer.effects?.contains(editing.kind) == true else { return }
         var effects = layer.effects ?? LayerEffects()
         change(&effects)
-        setEffects(effects, on: layer.id, name: "Edit " + editing.kind.rawValue)
+        setEffects(effects, on: layer.id, name: String(localized: "Edit \(editing.kind.displayName)"))
     }
 
     func canCopyEffect(_ kind: LayerEffectKind, from source: UUID, to target: UUID) -> Bool {
@@ -343,7 +354,7 @@ extension EditorSession {
         case .outerGlow: effects.outerGlow = original.outerGlow
         case .innerGlow: effects.innerGlow = original.innerGlow
         }
-        setEffects(effects, on: target, name: "Copy " + kind.rawValue)
+        setEffects(effects, on: target, name: String(localized: "Copy \(kind.displayName)"))
         selectEffect(kind, on: target)
     }
 
@@ -351,7 +362,7 @@ extension EditorSession {
         guard var effects = document?.layers.first(where: { $0.id == id })?.effects else { return }
         let enabled = effects.isEnabled(kind)
         effects.setEnabled(!enabled, for: kind)
-        setEffects(effects, on: id, name: (enabled ? "Hide " : "Show ") + kind.rawValue)
+        setEffects(effects, on: id, name: enabled ? String(localized: "Hide \(kind.displayName)") : String(localized: "Show \(kind.displayName)"))
     }
 
     func removeSelectedEffect() {
@@ -363,7 +374,7 @@ extension EditorSession {
             effectsEditingOriginal = nil
         }
         effects.remove(selectedEffect.kind)
-        setEffects(effects, on: selectedEffect.layerID, name: "Remove " + selectedEffect.kind.rawValue)
+        setEffects(effects, on: selectedEffect.layerID, name: String(localized: "Remove \(selectedEffect.kind.displayName)"))
         effectSelection = nil
     }
 }

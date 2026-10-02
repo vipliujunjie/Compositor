@@ -29,6 +29,16 @@ struct ImageSizeSheet: View {
             && (1...DocumentLimits.maxSideExtent).contains(width.rounded()) && (1...DocumentLimits.maxSideExtent).contains(height.rounded())
             && (!resample || width.rounded() * height.rounded() <= DocumentLimits.maxSurfaceExtent)
     }
+    /// The unit's name for the picker; `unit` itself stays the key the sheet compares against.
+    private func unitTitle(_ unit: String) -> String {
+        switch unit {
+        case "Pixels": String(localized: "Pixels")
+        case "Percent": String(localized: "Percent")
+        case "Inches": String(localized: "Inches")
+        case "Centimeters": String(localized: "Centimeters")
+        default: unit
+        }
+    }
     private func display(_ pixels: Double, original: Int) -> Double {
         switch unit {
         case "Percent": return pixels / Double(original) * 100
@@ -107,7 +117,7 @@ struct ImageSizeSheet: View {
             Text("Image Size").font(.title2.bold())
             Text("Current: \(document.width) × \(document.height) pixels").foregroundStyle(.secondary)
             Picker("Units", selection: $unit) {
-                ForEach(units.filter { resample || ($0 != "Pixels" && $0 != "Percent") }, id: \.self) { Text($0) }
+                ForEach(units.filter { resample || ($0 != "Pixels" && $0 != "Percent") }, id: \.self) { Text(unitTitle($0)) }
             }
             HStack {
                 Text("Width").frame(width: 75, alignment: .leading)
@@ -147,7 +157,7 @@ struct ImageSizeSheet: View {
             }
             if resample {
                 Picker("Sampling", selection: $sampling) {
-                    ForEach(LayerSampling.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                    ForEach(LayerSampling.allCases, id: \.self) { Text($0.displayName).tag($0) }
                 }
                 Text("Resizes layer pixels and applies existing transforms. Undo restores the originals.")
                     .font(.callout).foregroundStyle(.secondary)

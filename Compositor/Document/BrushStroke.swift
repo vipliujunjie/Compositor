@@ -4,6 +4,15 @@ nonisolated enum SpotHealingMode: String, CaseIterable, Sendable, Hashable {
     case contentAware = "Content-Aware"
     case createTexture = "Create Texture"
     case proximityMatch = "Proximity Match"
+
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .contentAware: String(localized: "Content-Aware")
+        case .createTexture: String(localized: "Create Texture")
+        case .proximityMatch: String(localized: "Proximity Match")
+        }
+    }
 }
 
 nonisolated struct BrushSettings: Sendable {

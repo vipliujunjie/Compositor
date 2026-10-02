@@ -4,11 +4,25 @@ import CoreImage
 nonisolated enum CameraRawUprightMode: String, CaseIterable, Sendable {
     case off = "Off"
     case guided = "Guided"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .off: String(localized: "Off")
+        case .guided: String(localized: "Guided")
+        }
+    }
 }
 
 nonisolated enum CameraRawProjection: String, CaseIterable, Sendable {
     case perspective = "Perspective"
     case rectilinear = "Rectilinear"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .perspective: String(localized: "Perspective")
+        case .rectilinear: String(localized: "Rectilinear")
+        }
+    }
 }
 
 /// A guide line in normalized image coordinates, 0…1 from the lower-left of the pixel grid.
@@ -179,6 +193,17 @@ nonisolated enum CameraRawProcessVersion: String, CaseIterable, Sendable {
     case version4 = "Version 4"
     case version5 = "Version 5"
     case version6 = "Version 6"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .version1: String(localized: "Version 1")
+        case .version2: String(localized: "Version 2")
+        case .version3: String(localized: "Version 3")
+        case .version4: String(localized: "Version 4")
+        case .version5: String(localized: "Version 5")
+        case .version6: String(localized: "Version 6")
+        }
+    }
     var kernelValue: Int32 {
         switch self {
         case .version1: return 1
@@ -194,17 +219,17 @@ nonisolated enum CameraRawProcessVersion: String, CaseIterable, Sendable {
     var summary: String {
         switch self {
         case .version1:
-            return "Earliest response. Hue, saturation, and shadow tint move about half as far as Version 6."
+            return String(localized: "Earliest response. Hue, saturation, and shadow tint move about half as far as Version 6.")
         case .version2:
-            return "A little stronger than Version 1. The sliders below still fall well short of the current look."
+            return String(localized: "A little stronger than Version 1. The sliders below still fall well short of the current look.")
         case .version3:
-            return "Firmer color than Version 2. Primary shifts stay gentler than the current process."
+            return String(localized: "Firmer color than Version 2. Primary shifts stay gentler than the current process.")
         case .version4:
-            return "The 2012 response. Calibration reaches most of the strength used by Version 6."
+            return String(localized: "The 2012 response. Calibration reaches most of the strength used by Version 6.")
         case .version5:
-            return "Close to the current process, with slightly softer primary and shadow shifts."
+            return String(localized: "Close to the current process, with slightly softer primary and shadow shifts.")
         case .version6:
-            return "Current default. The calibration sliders below apply at full strength."
+            return String(localized: "Current default. The calibration sliders below apply at full strength.")
         }
     }
 }

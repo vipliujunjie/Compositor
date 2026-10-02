@@ -663,7 +663,7 @@ final class CanvasView: NSView {
         clipsToBounds = true
         setAccessibilityElement(true)
         setAccessibilityRole(.image)
-        setAccessibilityLabel("Canvas")
+        setAccessibilityLabel(String(localized: "Canvas"))
         setAccessibilityIdentifier("editorCanvas")
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -796,10 +796,10 @@ final class CanvasView: NSView {
         guard session.document != nil, event.modifierFlags.contains(.command),
               event.modifierFlags.intersection([.control, .option]).isEmpty else { return false }
 
-        let zoomInIsDefault = ShortcutDefinition.all.first(where: { $0.isMenu && $0.title == "Zoom In" })
-            .map { ShortcutSettings.shared.chord($0) == $0.original } ?? true
-        let zoomOutIsDefault = ShortcutDefinition.all.first(where: { $0.isMenu && $0.title == "Zoom Out" })
-            .map { ShortcutSettings.shared.chord($0) == $0.original } ?? true
+        // Matched by the chord the shortcut ships with rather than by its title, which the interface
+        // shows in the user's own language.
+        let zoomInIsDefault = ShortcutSettings.shared.menu("=", modifiers: .command) == ShortcutChord("=", 1)
+        let zoomOutIsDefault = ShortcutSettings.shared.menu("-", modifiers: .command) == ShortcutChord("-", 1)
 
         // '+' is '=' with Shift on a Mac keyboard; the keypad has its own key codes.
         let isZoomIn = [24, 69].contains(event.keyCode)

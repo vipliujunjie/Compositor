@@ -27,7 +27,7 @@ struct TransformInspector: View {
                 Toggle(isOn: Binding(get: { session.locksTransformRatio != held.contains(.shift) },
                                      set: { session.locksTransformRatio = $0 != held.contains(.shift) })) { Image(systemName: "link") }
                     .toggleStyle(.button).help("Lock aspect ratio. Hold Shift while dragging a handle to turn it the other way.")
-                TransformValueField(label: "Scale", suffix: "%", value: value.scalePercent(pixelSize: pixelSize), range: 0.1...30_000, finish: finish) { number in
+                TransformValueField(label: String(localized: "Scale"), suffix: String(localized: "%"), value: value.scalePercent(pixelSize: pixelSize), range: 0.1...30_000, finish: finish) { number in
                     change { value in
                         guard number > 0 else { return }
                         value = value.scaled(toPercent: number, pixelSize: pixelSize)
@@ -37,7 +37,7 @@ struct TransformInspector: View {
                 Picker("Sampling", selection: Binding(get: { value.sampling }, set: { sampling in
                     change { $0.sampling = sampling }
                 })) {
-                    ForEach(LayerSampling.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                    ForEach(LayerSampling.allCases, id: \.self) { Text($0.displayName).tag($0) }
                 }.frame(width: 170)
                 Button("Flip H") { change { $0.flipX.toggle() } }
                 Button("Flip V") { change { $0.flipY.toggle() } }

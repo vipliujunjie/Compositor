@@ -10,7 +10,7 @@ struct ShapeControls: View {
                 session.cancelShape()
                 session.shapeKind = kind
             })) {
-                ForEach(ShapeKind.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                ForEach(ShapeKind.allCases, id: \.self) { Text($0.displayName).tag($0) }
             }
             .pickerStyle(.segmented).labelsHidden().fixedSize()
             .help("Shift-U (or Tab) steps through Rectangle, Ellipse and Line")
@@ -26,7 +26,7 @@ struct ShapeControls: View {
                         .frame(width: 48).textFieldStyle(.roundedBorder).multilineTextAlignment(.trailing)
                         .arrowSteps(value: { session.shapeLineWidth },
                                     change: { session.shapeLineWidth = min(5000, max(1, $0)) })
-                        .unitSuffix("px")
+                        .unitSuffix(String(localized: "px"))
                 }
             }
             if session.shapeKind == .rectangle {
@@ -41,7 +41,7 @@ struct ShapeControls: View {
                         .frame(width: 48).textFieldStyle(.roundedBorder).multilineTextAlignment(.trailing)
                         .arrowSteps(value: { Double(session.shapeCornerRadius) },
                                     change: { session.shapeCornerRadius = min(5000, max(0, CGFloat($0))) })
-                        .unitSuffix("px")
+                        .unitSuffix(String(localized: "px"))
                 }
                 .help("Round the rectangle's corners by this many pixels; 0 keeps them square")
             }

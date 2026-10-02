@@ -70,6 +70,22 @@ struct GridAppearance: Equatable {
              custom = "Custom"
         var id: Self { self }
 
+        /// The name shown in the interface.
+        var displayName: String {
+            switch self {
+            case .lightGray: String(localized: "Light Gray")
+            case .lightBlue: String(localized: "Light Blue")
+            case .lightRed: String(localized: "Light Red")
+            case .green: String(localized: "Green")
+            case .mediumBlue: String(localized: "Medium Blue")
+            case .yellow: String(localized: "Yellow")
+            case .magenta: String(localized: "Magenta")
+            case .cyan: String(localized: "Cyan")
+            case .black: String(localized: "Black")
+            case .custom: String(localized: "Custom")
+            }
+        }
+
         /// Nil for Custom, which uses the appearance's own color.
         var color: PaletteColor? {
             switch self {
@@ -91,6 +107,15 @@ struct GridAppearance: Equatable {
     enum Style: String, CaseIterable, Identifiable {
         case lines = "Lines", dashedLines = "Dashed Lines", dots = "Dots"
         var id: Self { self }
+
+        /// The name shown in the interface.
+        var displayName: String {
+            switch self {
+            case .lines: String(localized: "Lines")
+            case .dashedLines: String(localized: "Dashed Lines")
+            case .dots: String(localized: "Dots")
+            }
+        }
 
         /// On and off lengths in screen points; empty for a solid line.
         var dashes: [CGFloat] {
@@ -202,18 +227,18 @@ extension EditorSession {
                 refreshCanvasPreview?()
                 return
             }
-            beginEdit("Delete Guide")
+            beginEdit(String(localized: "Delete Guide"))
             document?.guides.removeAll { $0.id == drag.id }
             endEdit()
             refreshCanvasPreview?()
             return
         }
         if drag.isNew {
-            beginEdit("New Guide")
+            beginEdit(String(localized: "New Guide"))
             document?.guides.append(CanvasGuide(id: drag.id, axis: drag.axis, position: drag.position))
             endEdit()
         } else if drag.original != drag.position {
-            beginEdit("Move Guide")
+            beginEdit(String(localized: "Move Guide"))
             if let index = document?.guides.firstIndex(where: { $0.id == drag.id }) {
                 document?.guides[index].position = drag.position
             }
@@ -229,7 +254,7 @@ extension EditorSession {
 
     func clearGuides() {
         guard canClearGuides else { return }
-        beginEdit("Clear Guides")
+        beginEdit(String(localized: "Clear Guides"))
         document?.guides = []
         endEdit()
         refreshCanvasPreview?()
@@ -238,7 +263,7 @@ extension EditorSession {
     func addGuide(_ guide: CanvasGuide) {
         guard canEditGuides else { return }
         showsGuides = true
-        beginEdit("New Guide")
+        beginEdit(String(localized: "New Guide"))
         document?.guides.append(guide)
         endEdit()
     }

@@ -22,6 +22,28 @@ nonisolated enum FilterKind: String, CaseIterable, Sendable {
     case grain = "Grain"
     case blackWhite = "Black & White"
     case colorBalance = "Color Balance"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .gaussianBlur: String(localized: "Gaussian Blur")
+        case .motionBlur: String(localized: "Motion Blur")
+        case .addNoise: String(localized: "Add Noise")
+        case .vignette: String(localized: "Vignette")
+        case .bloomGlow: String(localized: "Bloom / Glow")
+        case .dither: String(localized: "Dither")
+        case .tonalContrast: String(localized: "Tonal Contrast")
+        case .lensCorrection: String(localized: "Lens Correction")
+        case .cameraRaw: String(localized: "Camera Raw Filter")
+        case .removeBackground: String(localized: "Remove Background")
+        case .contentAwareFill: String(localized: "Content-Aware Fill")
+        case .curves: String(localized: "Curves")
+        case .exposure: String(localized: "Exposure")
+        case .gradientMap: String(localized: "Gradient Map")
+        case .grain: String(localized: "Grain")
+        case .blackWhite: String(localized: "Black & White")
+        case .colorBalance: String(localized: "Color Balance")
+        }
+    }
     var isAutomatic: Bool { self == .contentAwareFill || self == .removeBackground }
     /// Color adjustments: in the Image menu (and editable as adjustment layers), not under Filter.
     var isImageAdjustment: Bool {
@@ -35,6 +57,13 @@ nonisolated enum FilterKind: String, CaseIterable, Sendable {
 nonisolated enum BackgroundQuality: String, CaseIterable, Sendable {
     case basic = "Basic"
     case advanced = "Advanced"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .basic: String(localized: "Basic")
+        case .advanced: String(localized: "Advanced")
+        }
+    }
 }
 
 /// Every filter's settings; each filter reads only its own.
@@ -649,7 +678,7 @@ extension EditorSession {
                                                       width: asset.image.width, height: asset.image.height) else { throw ExportError.render }
                 mask = owned.replacing(try LayerMask.asset(from: carried))
             }
-            beginEdit(edit.kind.rawValue)
+            beginEdit(edit.kind.displayName)
             document?.layers[index] = ImageLayer(id: current.id, asset: asset, name: current.name, isVisible: current.isVisible,
                 transform: made.transform ?? current.transform, parentID: current.parentID, isGroup: false,
                 opacity: current.opacity, blendMode: current.blendMode, mask: mask, maskSourceID: current.maskSourceID,
@@ -687,7 +716,7 @@ extension EditorSession {
                   let layer = document?.layers[index], layer.asset?.image === edit.original.image,
                   layer.transform == edit.transform else { return }
             let asset = try LayerMask.asset(from: made)
-            beginEdit(edit.kind.rawValue)
+            beginEdit(edit.kind.displayName)
             document?.layers[index].mask = layer.mask.map { $0.replacing(asset) } ?? LayerMask(asset: asset)
             document?.layers[index].mask?.isEnabled = true
             isMaskSelected = true

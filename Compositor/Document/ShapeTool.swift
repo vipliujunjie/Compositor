@@ -4,6 +4,14 @@ nonisolated enum ShapeKind: String, CaseIterable, Codable, Sendable {
     case rectangle = "Rectangle"
     case ellipse = "Ellipse"
     case line = "Line"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .rectangle: String(localized: "Rectangle")
+        case .ellipse: String(localized: "Ellipse")
+        case .line: String(localized: "Line")
+        }
+    }
     /// The shape filling `rect`. A rectangle's corners round by `cornerRadius`, at most half its shorter
     /// side (so a large radius makes a pill); ellipses ignore it. A line runs corner to corner and is stroked,
     /// not filled (see `linePath`).
@@ -128,7 +136,7 @@ extension EditorSession {
         }
         guard canEditLayers, document != nil, rect.width >= 1, rect.height >= 1 else { return }
         guard Int(rect.width) * Int(rect.height) <= Self.maxShapePixels else {
-            brushError = "That shape is too large. A shape can cover up to \(DocumentLimits.maxSurfaceMegapixels) megapixels."
+            brushError = String(localized: "That shape is too large. A shape can cover up to \(DocumentLimits.maxSurfaceMegapixels) megapixels.")
             return
         }
         do {
@@ -143,7 +151,7 @@ extension EditorSession {
             let style = LayerShapeStyle(kind: draft.kind, red: foregroundColor.red, green: foregroundColor.green,
                                         blue: foregroundColor.blue, cornerRadius: draft.cornerRadius,
                                         lineWidth: draft.kind == .line ? thickness : nil, start: start, end: finish)
-            addPixelLayer(image, at: rect.origin, name: nextShapeName(draft.kind), editName: draft.kind.rawValue,
+            addPixelLayer(image, at: rect.origin, name: nextShapeName(draft.kind), editName: draft.kind.displayName,
                           dropsSelection: false, shape: LayerShape(style: style, image: image))
         } catch { brushError = error.localizedDescription }
     }
@@ -152,8 +160,8 @@ extension EditorSession {
     func nextShapeName(_ kind: ShapeKind) -> String {
         let names = Set(document?.layers.map(\.name) ?? [])
         var number = 1
-        while names.contains("\(kind.rawValue) \(number)") { number += 1 }
-        return "\(kind.rawValue) \(number)"
+        while names.contains(String(localized: "\(kind.displayName) \(number)")) { number += 1 }
+        return String(localized: "\(kind.displayName) \(number)")
     }
 
     /// A shape layer scaled to a new size draws its shape again at that size, so a rounded corner keeps its radius

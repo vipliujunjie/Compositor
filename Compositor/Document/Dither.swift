@@ -16,6 +16,22 @@ nonisolated enum DitherStyle: String, CaseIterable, Sendable {
     case ascii = "ASCII"
     case scanlines = "Scanlines (CRT)"
 
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .atkinson: String(localized: "Atkinson (Classic Mac)")
+        case .floydSteinberg: String(localized: "Floyd–Steinberg")
+        case .bayer2: String(localized: "Bayer 2 × 2")
+        case .bayer4: String(localized: "Bayer 4 × 4")
+        case .bayer8: String(localized: "Bayer 8 × 8")
+        case .dots: String(localized: "Halftone Dots")
+        case .lines: String(localized: "Halftone Lines")
+        case .diamonds: String(localized: "Halftone Diamonds")
+        case .patterns: String(localized: "Mac Patterns")
+        case .ascii: String(localized: "ASCII")
+        case .scanlines: String(localized: "Scanlines (CRT)")
+        }
+    }
     static let groups: [[DitherStyle]] = [
         [.atkinson, .floydSteinberg],
         [.bayer2, .bayer4, .bayer8],
@@ -39,12 +55,27 @@ nonisolated enum DitherStyle: String, CaseIterable, Sendable {
 nonisolated enum DitherPixelShape: String, CaseIterable, Sendable {
     case square = "Square"
     case dot = "Dot"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .square: String(localized: "Square")
+        case .dot: String(localized: "Dot")
+        }
+    }
 }
 
 nonisolated enum DitherColors: String, CaseIterable, Sendable {
     case blackWhite = "Black & White"
     case twoColors = "Two Colors"
     case original = "Original"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .blackWhite: String(localized: "Black & White")
+        case .twoColors: String(localized: "Two Colors")
+        case .original: String(localized: "Original")
+        }
+    }
 }
 
 nonisolated struct DitherSettings: Equatable, Sendable {

@@ -10,7 +10,7 @@ struct CameraRawGeometryControls: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Upright").font(.subheadline)
             Picker("Upright", selection: uprightBinding) {
-                ForEach(CameraRawUprightMode.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                ForEach(CameraRawUprightMode.allCases, id: \.self) { Text($0.displayName).tag($0) }
             }
             .labelsHidden()
             .pickerStyle(.segmented)
@@ -36,16 +36,16 @@ struct CameraRawGeometryControls: View {
                 }
             }
             Picker("Projection", selection: binding(\.projection)) {
-                ForEach(CameraRawProjection.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                ForEach(CameraRawProjection.allCases, id: \.self) { Text($0.displayName).tag($0) }
             }
             .help("Perspective allows stronger keystone. Rectilinear keeps the warp gentler.")
-            geometrySlider("Vertical", \.vertical, help: "Straightens vertical lines toward the center.")
-            geometrySlider("Horizontal", \.horizontal, help: "Straightens horizontal lines toward the center.")
-            geometrySlider("Rotate", \.rotate, range: CameraRawGeometrySettings.rotateRange, help: "Rotates the picture around its center.")
-            geometrySlider("Aspect", \.aspect, help: "Stretches width relative to height.")
-            geometrySlider("Scale", \.scale, help: "Zooms the transformed picture within the frame.")
-            geometrySlider("Offset X", \.offsetX, help: "Moves the picture left or right.")
-            geometrySlider("Offset Y", \.offsetY, help: "Moves the picture up or down.")
+            geometrySlider("Vertical", \.vertical, help: String(localized: "Straightens vertical lines toward the center."))
+            geometrySlider("Horizontal", \.horizontal, help: String(localized: "Straightens horizontal lines toward the center."))
+            geometrySlider("Rotate", \.rotate, range: CameraRawGeometrySettings.rotateRange, help: String(localized: "Rotates the picture around its center."))
+            geometrySlider("Aspect", \.aspect, help: String(localized: "Stretches width relative to height."))
+            geometrySlider("Scale", \.scale, help: String(localized: "Zooms the transformed picture within the frame."))
+            geometrySlider("Offset X", \.offsetX, help: String(localized: "Moves the picture left or right."))
+            geometrySlider("Offset Y", \.offsetY, help: String(localized: "Moves the picture up or down."))
             Toggle("Constrain Crop", isOn: binding(\.constrainCrop))
                 .help("Crops empty edges after the transform and fits the result back into the frame.")
         }
@@ -62,7 +62,7 @@ struct CameraRawGeometryControls: View {
         Binding(get: { raw.geometry[keyPath: key] }, set: { value in update { $0.cameraRaw.geometry[keyPath: key] = value } })
     }
 
-    private func geometrySlider(_ title: String, _ key: WritableKeyPath<CameraRawGeometrySettings, Double>,
+    private func geometrySlider(_ title: LocalizedStringKey, _ key: WritableKeyPath<CameraRawGeometrySettings, Double>,
                                 range: ClosedRange<Double> = CameraRawGeometrySettings.toneRange, help: String) -> some View {
         let value = raw.geometry[keyPath: key]
         return HStack(spacing: 10) {
@@ -95,7 +95,7 @@ struct CameraRawCalibrationControls: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Picker("Process", selection: binding(\.process)) {
-                ForEach(CameraRawProcessVersion.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                ForEach(CameraRawProcessVersion.allCases, id: \.self) { Text($0.displayName).tag($0) }
             }
             .help("Chooses how strongly the calibration sliders below are applied. Version 6 is the current default.")
             Text(raw.calibration.process.summary)
@@ -104,16 +104,16 @@ struct CameraRawCalibrationControls: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .help(raw.calibration.process.summary)
             Text("Shadows").font(.subheadline)
-            calibrationSlider("Tint", \.shadowTint, help: "Adds green or magenta to the darkest tones.")
+            calibrationSlider("Tint", \.shadowTint, help: String(localized: "Adds green or magenta to the darkest tones."))
             Text("Red Primary").font(.subheadline)
-            calibrationSlider("Hue", \.redHue, help: "Shifts how red is interpreted.")
-            calibrationSlider("Saturation", \.redSaturation, help: "Strengthens or weakens the red primary.")
+            calibrationSlider("Hue", \.redHue, help: String(localized: "Shifts how red is interpreted."))
+            calibrationSlider("Saturation", \.redSaturation, help: String(localized: "Strengthens or weakens the red primary."))
             Text("Green Primary").font(.subheadline)
-            calibrationSlider("Hue", \.greenHue, help: "Shifts how green is interpreted.")
-            calibrationSlider("Saturation", \.greenSaturation, help: "Strengthens or weakens the green primary.")
+            calibrationSlider("Hue", \.greenHue, help: String(localized: "Shifts how green is interpreted."))
+            calibrationSlider("Saturation", \.greenSaturation, help: String(localized: "Strengthens or weakens the green primary."))
             Text("Blue Primary").font(.subheadline)
-            calibrationSlider("Hue", \.blueHue, help: "Shifts how blue is interpreted.")
-            calibrationSlider("Saturation", \.blueSaturation, help: "Strengthens or weakens the blue primary.")
+            calibrationSlider("Hue", \.blueHue, help: String(localized: "Shifts how blue is interpreted."))
+            calibrationSlider("Saturation", \.blueSaturation, help: String(localized: "Strengthens or weakens the blue primary."))
         }
     }
 
@@ -121,7 +121,7 @@ struct CameraRawCalibrationControls: View {
         Binding(get: { raw.calibration[keyPath: key] }, set: { value in update { $0.cameraRaw.calibration[keyPath: key] = value } })
     }
 
-    private func calibrationSlider(_ title: String, _ key: WritableKeyPath<CameraRawCalibrationSettings, Double>, help: String) -> some View {
+    private func calibrationSlider(_ title: LocalizedStringKey, _ key: WritableKeyPath<CameraRawCalibrationSettings, Double>, help: String) -> some View {
         let value = raw.calibration[keyPath: key]
         return HStack(spacing: 10) {
             Text(title).frame(minWidth: CameraRawControls.labelWidth, alignment: .leading).help(help)

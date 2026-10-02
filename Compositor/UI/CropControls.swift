@@ -9,7 +9,7 @@ struct CropControls: View {
         HStack(spacing: 14) {
             Text("Crop").font(ToolHeaderStyle.titleFont)
             Picker("Ratio", selection: $session.cropRatioChoice) {
-                ForEach(["Free", "Original", "1:1", "4:3", "3:4", "16:9", "9:16"], id: \.self) { Text($0) }
+                ForEach(["Free", "Original", "1:1", "4:3", "3:4", "16:9", "9:16"], id: \.self) { Text(ratioTitle($0)) }
             }.frame(width: 170)
                 .onChange(of: session.cropRatioChoice) { _, _ in session.changeCropRatio() }
             if let rect = session.cropRect {
@@ -20,5 +20,14 @@ struct CropControls: View {
             Button("Apply Crop") { Task { await session.commitCrop() } }
                 .disabled(session.cropRect == nil)
         }.padding(.horizontal, 18).toolHeaderBar().disabled(session.showsBusy || session.document == nil)
+    }
+
+    /// The ratio's name for the picker; `cropRatioChoice` keeps the value the session reads and stores.
+    private func ratioTitle(_ ratio: String) -> String {
+        switch ratio {
+        case "Free": String(localized: "Free")
+        case "Original": String(localized: "Original")
+        default: ratio
+        }
     }
 }

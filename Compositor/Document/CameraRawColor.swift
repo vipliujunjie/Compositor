@@ -1,11 +1,61 @@
 import AppKit
 
-nonisolated enum CameraRawCurvePage: String, CaseIterable, Sendable { case parametric = "Parametric", point = "Point" }
-nonisolated enum CameraRawPointChannel: String, CaseIterable, Sendable { case rgb = "RGB", red = "Red", green = "Green", blue = "Blue" }
-nonisolated enum CameraRawMixerPage: String, CaseIterable, Sendable { case hsl = "HSL", color = "Color", point = "Point Color" }
-nonisolated enum CameraRawMixerTab: String, CaseIterable, Sendable { case hue = "Hue", saturation = "Saturation", luminance = "Luminance" }
+nonisolated enum CameraRawCurvePage: String, CaseIterable, Sendable {
+    case parametric = "Parametric", point = "Point"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .parametric: String(localized: "Parametric")
+        case .point: String(localized: "Point")
+        }
+    }
+}
+nonisolated enum CameraRawPointChannel: String, CaseIterable, Sendable {
+    case rgb = "RGB", red = "Red", green = "Green", blue = "Blue"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .rgb: String(localized: "RGB")
+        case .red: String(localized: "Red")
+        case .green: String(localized: "Green")
+        case .blue: String(localized: "Blue")
+        }
+    }
+}
+nonisolated enum CameraRawMixerPage: String, CaseIterable, Sendable {
+    case hsl = "HSL", color = "Color", point = "Point Color"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .hsl: String(localized: "HSL")
+        case .color: String(localized: "Color")
+        case .point: String(localized: "Point Color")
+        }
+    }
+}
+nonisolated enum CameraRawMixerTab: String, CaseIterable, Sendable {
+    case hue = "Hue", saturation = "Saturation", luminance = "Luminance"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .hue: String(localized: "Hue")
+        case .saturation: String(localized: "Saturation")
+        case .luminance: String(localized: "Luminance")
+        }
+    }
+}
 nonisolated enum CameraRawGradePage: String, CaseIterable, Sendable {
     case threeWay = "Three-Way", shadows = "Shadows", midtones = "Midtones", highlights = "Highlights", global = "Global"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .threeWay: String(localized: "Three-Way")
+        case .shadows: String(localized: "Shadows")
+        case .midtones: String(localized: "Midtones")
+        case .highlights: String(localized: "Highlights")
+        case .global: String(localized: "Global")
+        }
+    }
 }
 
 struct CameraRawDrag {
@@ -149,7 +199,9 @@ nonisolated struct CameraRawCurveSettings: Equatable, Sendable {
 
 /// Eight color families, each with hue, saturation, and luminance shifts of −100…100.
 nonisolated struct CameraRawMixerSettings: Equatable, Sendable {
-    static let names = ["Reds", "Oranges", "Yellows", "Greens", "Aquas", "Blues", "Purples", "Magentas"]
+    static let names = [String(localized: "Reds"), String(localized: "Oranges"), String(localized: "Yellows"),
+                        String(localized: "Greens"), String(localized: "Aquas"), String(localized: "Blues"),
+                        String(localized: "Purples"), String(localized: "Magentas")]
     static let centers = [0.0, 30.0, 60.0, 120.0, 180.0, 240.0, 270.0, 300.0]
     var hue = Array(repeating: 0.0, count: 8)
     var saturation = Array(repeating: 0.0, count: 8)

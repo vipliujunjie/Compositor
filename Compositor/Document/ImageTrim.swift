@@ -7,6 +7,14 @@ public enum TrimBasedOn: String, CaseIterable, Identifiable, Sendable {
     case bottomRightPixelColor = "Bottom Right Pixel Color"
 
     public var id: String { rawValue }
+    /// The name shown in the interface.
+    public var displayName: String {
+        switch self {
+        case .transparentPixels: String(localized: "Transparent Pixels")
+        case .topLeftPixelColor: String(localized: "Top Left Pixel Color")
+        case .bottomRightPixelColor: String(localized: "Bottom Right Pixel Color")
+        }
+    }
 }
 
 nonisolated public struct TrimOptions: Sendable, Equatable {
@@ -45,9 +53,9 @@ public enum TrimError: LocalizedError, Sendable {
     public var errorDescription: String? {
         switch self {
         case .noContentToTrim:
-            return "No content remained after trimming."
+            return String(localized: "No content remained after trimming.")
         case .invalidDimensions:
-            return "The trimmed image dimensions are invalid."
+            return String(localized: "The trimmed image dimensions are invalid.")
         }
     }
 }
@@ -204,7 +212,7 @@ extension EditorSession {
         guard let trimmedSnapshot = try await ImageTrim.trim(snapshot, options: options) else {
             return false
         }
-        applyDocumentSize(trimmedSnapshot, actionName: "Trim")
+        applyDocumentSize(trimmedSnapshot, actionName: String(localized: "Trim"))
         return true
     }
 }

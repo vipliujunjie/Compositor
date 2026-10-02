@@ -217,10 +217,16 @@ private func projectTabPillWidth(_ tab: ProjectTab, active: Bool) -> CGFloat {
     projectTabLabelWidth(tab, active: active) + 40
 }
 
+/// The overflow pill's own text, looked up here: `projectTabOverflowLabel` is the layout's English
+/// wording, and this is what the user reads — one key for a single hidden tab, one for several.
+private func projectTabOverflowDisplayLabel(for hiddenCount: Int) -> String {
+    hiddenCount == 1 ? String(localized: "1 more tab") : String(localized: "\(hiddenCount) more tabs")
+}
+
 /// Sized the same way the tab pills are: text measured at the same weight, plus the chevron and padding.
 private func projectTabOverflowPillWidth(hiddenCount: Int) -> CGFloat {
     let font = NSFont.systemFont(ofSize: 12, weight: .medium)
-    let text = projectTabOverflowLabel(for: hiddenCount)
+    let text = projectTabOverflowDisplayLabel(for: hiddenCount)
     let textWidth = (text as NSString).size(withAttributes: [.font: font]).width
     return ceil(textWidth) + 11 + 4 + 10 + 11 // leading, gap before chevron, chevron, trailing
 }
@@ -264,7 +270,7 @@ private struct NewTabDropSlot: View {
 private struct OverflowTabsPill: View {
     let workspace: ProjectWorkspace
     let hiddenIDs: [UUID]
-    private var label: String { projectTabOverflowLabel(for: hiddenIDs.count) }
+    private var label: String { projectTabOverflowDisplayLabel(for: hiddenIDs.count) }
     var body: some View {
         HStack(spacing: 4) {
             Text(label).font(.system(size: 12, weight: .medium))

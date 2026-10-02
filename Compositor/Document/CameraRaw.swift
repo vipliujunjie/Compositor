@@ -5,6 +5,13 @@ import AppKit
 nonisolated enum CameraRawWhiteBalance: String, CaseIterable, Sendable {
     case custom = "Custom"
     case auto = "Auto"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .custom: String(localized: "Custom")
+        case .auto: String(localized: "Auto")
+        }
+    }
 }
 
 /// Glow's three looks. Warmth tints Diffusion and Bloom from cool to warm; Halation's fringe stays red.
@@ -12,6 +19,14 @@ nonisolated enum CameraRawGlowStyle: String, CaseIterable, Sendable {
     case diffusion = "Diffusion"
     case bloom = "Bloom"
     case halation = "Halation"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .diffusion: String(localized: "Diffusion")
+        case .bloom: String(localized: "Bloom")
+        case .halation: String(localized: "Halation")
+        }
+    }
     var kernelValue: Int32 {
         switch self {
         case .diffusion: return 0
@@ -26,6 +41,14 @@ nonisolated enum CameraRawVignetteStyle: String, CaseIterable, Sendable {
     case highlightPriority = "Highlight Priority"
     case colorPriority = "Color Priority"
     case paintOverlay = "Paint Overlay"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .highlightPriority: String(localized: "Highlight Priority")
+        case .colorPriority: String(localized: "Color Priority")
+        case .paintOverlay: String(localized: "Paint Overlay")
+        }
+    }
     var kernelValue: Int32 {
         switch self {
         case .highlightPriority: return 0
@@ -327,6 +350,13 @@ nonisolated struct CameraRawSettings: Equatable, Sendable {
 nonisolated enum CameraRawScopeMode: String, Sendable {
     case histogram = "Histogram"
     case vectorscope = "Vectorscope"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .histogram: String(localized: "Histogram")
+        case .vectorscope: String(localized: "Vectorscope")
+        }
+    }
 }
 
 /// One RGB histogram and a hue/saturation vectorscope of the same graded pixels.

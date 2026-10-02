@@ -12,6 +12,36 @@ nonisolated enum LayerBlendMode: String, Codable, CaseIterable, Sendable {
     case difference = "Difference", exclusion = "Exclusion", subtract = "Subtract", divide = "Divide"
     case hue = "Hue", saturation = "Saturation", color = "Color", luminosity = "Luminosity"
 
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .normal: String(localized: "Normal")
+        case .darken: String(localized: "Darken")
+        case .multiply: String(localized: "Multiply")
+        case .colorBurn: String(localized: "Color Burn")
+        case .linearBurn: String(localized: "Linear Burn")
+        case .lighten: String(localized: "Lighten")
+        case .screen: String(localized: "Screen")
+        case .colorDodge: String(localized: "Color Dodge")
+        case .linearDodge: String(localized: "Linear Dodge (Add)")
+        case .overlay: String(localized: "Overlay")
+        case .softLight: String(localized: "Soft Light")
+        case .hardLight: String(localized: "Hard Light")
+        case .vividLight: String(localized: "Vivid Light")
+        case .linearLight: String(localized: "Linear Light")
+        case .pinLight: String(localized: "Pin Light")
+        case .hardMix: String(localized: "Hard Mix")
+        case .difference: String(localized: "Difference")
+        case .exclusion: String(localized: "Exclusion")
+        case .subtract: String(localized: "Subtract")
+        case .divide: String(localized: "Divide")
+        case .hue: String(localized: "Hue")
+        case .saturation: String(localized: "Saturation")
+        case .color: String(localized: "Color")
+        case .luminosity: String(localized: "Luminosity")
+        }
+    }
+
     /// Photoshop's grouping: darkening modes together, then lightening, then contrast, then the
     /// comparative ones, then the component modes. The menu draws a line between each group.
     static let groups: [[LayerBlendMode]] = [
@@ -88,7 +118,7 @@ extension EditorSession {
     var canEditOpacity: Bool { canEditLayers && selectedLayerIDs.count == 1 && activeLayer != nil }
     func beginOpacityEdit() {
         guard canEditOpacity, opacityEditLayerID == nil, let id = activeLayerID else { return }
-        beginEdit("Layer Opacity")
+        beginEdit(String(localized: "Layer Opacity"))
         opacityEditLayerID = id
     }
     func finishOpacityEdit() {
@@ -101,7 +131,7 @@ extension EditorSession {
               let id = opacityEditLayerID ?? activeLayerID,
               let index = document?.layers.firstIndex(where: { $0.id == id }) else { return }
         let standalone = opacityEditLayerID == nil
-        if standalone { beginEdit("Layer Opacity") }
+        if standalone { beginEdit(String(localized: "Layer Opacity")) }
         document?.layers[index].opacity = min(1, max(0, opacity))
         if standalone { endEdit() }
     }
@@ -115,7 +145,7 @@ extension EditorSession {
         }
         guard !indices.isEmpty else { return }
         finishOpacityEdit()
-        beginEdit("Layer Opacity")
+        beginEdit(String(localized: "Layer Opacity"))
         for index in indices { self.document?.layers[index].opacity = value }
         endEdit()
     }
@@ -131,7 +161,7 @@ extension EditorSession {
         blendPreview = nil
         guard canEditAppearance, let index = document?.layers.firstIndex(where: { $0.id == activeLayerID }) else { return }
         finishOpacityEdit()
-        beginEdit("Layer Blend Mode")
+        beginEdit(String(localized: "Layer Blend Mode"))
         document?.layers[index].blendMode = mode
         endEdit()
     }

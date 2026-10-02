@@ -3,12 +3,26 @@ import AppKit
 nonisolated enum GradientStyle: String, CaseIterable, Sendable {
     case foregroundToBackground = "Foreground to Background"
     case foregroundToTransparent = "Foreground to Transparent"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .foregroundToBackground: String(localized: "Foreground to Background")
+        case .foregroundToTransparent: String(localized: "Foreground to Transparent")
+        }
+    }
 }
 
 /// Linear runs from start to end; radial is centered on the start with the end on its rim.
 nonisolated enum GradientShape: String, CaseIterable, Sendable {
     case linear = "Linear"
     case radial = "Radial"
+    /// The name shown in the interface.
+    var displayName: String {
+        switch self {
+        case .linear: String(localized: "Linear")
+        case .radial: String(localized: "Radial")
+        }
+    }
 }
 
 nonisolated struct GradientSettings: Equatable, Sendable {
@@ -113,7 +127,7 @@ extension EditorSession {
         guard edit.hasLine else { cancelGradient(); return }
         do {
             try edit.applyFill()
-            try await commitRasterEdit(edit.raster, name: edit.raster.isMask ? "Gradient Mask" : "Gradient")
+            try await commitRasterEdit(edit.raster, name: edit.raster.isMask ? String(localized: "Gradient Mask") : String(localized: "Gradient"))
         } catch { brushError = error.localizedDescription }
         if gradientEdit === edit { cancelGradient() }
     }

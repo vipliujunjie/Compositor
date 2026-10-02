@@ -85,7 +85,7 @@ extension EditorSession {
         document?.selection = edit.original
         colorRange = nil
         guard edit.hasColors, edit.error == nil else { return }
-        if let result { setSelection(result, name: "Color Range") } else { deselect() }
+        if let result { setSelection(result, name: String(localized: "Color Range")) } else { deselect() }
     }
 
     func cancelColorRange() {

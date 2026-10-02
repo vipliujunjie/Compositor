@@ -7,21 +7,21 @@ struct BrushControls: View {
             Text(session.tool == .spotHealing ? "Spot Healing" : session.tool == .cloneStamp ? "Clone Stamp" : session.tool == .blur ? "Smear" : session.brushMode == .erase ? "Eraser" : "Brush").font(ToolHeaderStyle.titleFont)
             if session.tool == .brush {
                 Picker("Mode", selection: $session.brushMode) {
-                    ForEach(BrushToolMode.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                    ForEach(BrushToolMode.allCases, id: \.self) { Text($0.displayName).tag($0) }
                 }
                 .pickerStyle(.segmented).labelsHidden().fixedSize()
                 .help("Paint with the foreground color (B), or erase pixels away (E)")
             }
             if session.tool == .blur {
                 Picker("Mode", selection: $session.blurMode) {
-                    ForEach(BlurToolMode.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                    ForEach(BlurToolMode.allCases, id: \.self) { Text($0.displayName).tag($0) }
                 }
                 .pickerStyle(.segmented).labelsHidden().fixedSize()
                 .help("Liquify pushes pixels · Blur softens · Smudge drags color along")
             }
             if session.tool == .spotHealing {
                 Picker("Type", selection: $session.spotHealingMode) {
-                    ForEach(SpotHealingMode.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                    ForEach(SpotHealingMode.allCases, id: \.self) { Text($0.displayName).tag($0) }
                 }
                 .pickerStyle(.segmented).labelsHidden().fixedSize()
                 .accessibilityIdentifier("spotHealingType")
@@ -46,7 +46,7 @@ struct BrushControls: View {
                 .onChange(of: session.brushSettings.diameter) { _, value in
                     session.brushSettings.diameter = value.isFinite ? min(2000, max(1, value)) : 40
                 }
-                .unitSuffix("px")
+                .unitSuffix(String(localized: "px"))
             Text("Hardness").scrubbable(sensitivity: 0.01, value: $session.brushSettings.hardness, range: 0...1)
             Slider(value: $session.brushSettings.hardness, in: 0...1).frame(width: 100)
             TextField("Hardness", value: Binding<Double>(get: { Double(session.brushSettings.hardness * 100) },
@@ -55,7 +55,7 @@ struct BrushControls: View {
                 .frame(width: 42).textFieldStyle(.roundedBorder)
                 .arrowSteps(value: { Double(session.brushSettings.hardness * 100) },
                             change: { session.brushSettings.hardness = CGFloat(min(1, max(0, $0 / 100))) })
-                .unitSuffix("%")
+                .unitSuffix(String(localized: "%"))
             Text(session.tool == .blur ? "Strength" : "Opacity")
                 .scrubbable(sensitivity: 0.01, value: $session.brushSettings.opacity, range: 0.01...1)
             Slider(value: $session.brushSettings.opacity, in: 0.01...1).frame(width: 100)
@@ -66,7 +66,7 @@ struct BrushControls: View {
                 .arrowSteps(value: { Double(session.brushSettings.opacity * 100) },
                             change: { session.brushSettings.opacity = CGFloat(min(100, max(1, $0)) / 100) })
                 .help("Press 1–9 for 10–90%, 0 for 100%")
-                .unitSuffix("%")
+                .unitSuffix(String(localized: "%"))
             // Blur softens by a radius of its own, apart from how strongly it lays the softening down.
             if session.tool == .blur, session.blurMode == .blur {
                 Text("Radius").scrubbable(sensitivity: 0.1, value: $session.brushSettings.blurRadius, range: 0.5...50)
@@ -80,7 +80,7 @@ struct BrushControls: View {
                     .arrowSteps(value: { Double(session.brushSettings.blurRadius) },
                                 change: { session.brushSettings.blurRadius = CGFloat(min(50, max(0.5, $0))) })
                     .help("How far the blur softens, in pixels")
-                    .unitSuffix("px")
+                    .unitSuffix(String(localized: "px"))
             }
             // Paint and Erase only: healing, cloning and smearing have their own feel.
             if session.tool == .brush {

@@ -42,7 +42,9 @@ struct ShortcutChord: Codable, Equatable, Hashable {
         return flags
     }
     var label: String {
-        let special = ["\u{7f}": "Delete", "\r": "Return", "\u{1b}": "Esc", "\t": "Tab", " ": "Space",
+        // The named keys are looked up; the arrows stay glyphs and the stored key characters never change.
+        let special = ["\u{7f}": String(localized: "Delete"), "\r": String(localized: "Return"), "\u{1b}": String(localized: "Esc"),
+                       "\t": String(localized: "Tab"), " ": String(localized: "Space"),
                        "\u{f702}": "←", "\u{f703}": "→", "\u{f701}": "↓", "\u{f700}": "↑"]
         return (modifiers & 4 != 0 ? "⌃" : "") + (modifiers & 2 != 0 ? "⌥" : "")
             + (modifiers & 8 != 0 ? "⇧" : "") + (modifiers & 1 != 0 ? "⌘" : "")
@@ -63,66 +65,75 @@ struct ShortcutChord: Codable, Equatable, Hashable {
 struct ShortcutDefinition: Identifiable {
     let title: String
     let group: String
+    /// The group's name in code: `menu`, `canvas` or `text`. Identity has to stay independent of the
+    /// interface language, so matches use this rather than the group the sheet shows.
+    let groupID: String
     let original: ShortcutChord
-    var id: String { "\(group):\(title)" }
-    var isMenu: Bool { group == "Menus" }
+    /// A stable key for saved overrides: the group and the chord the shortcut ships with, so neither
+    /// the interface language nor a language switch drops what the user saved.
+    var id: String { "\(groupID):\(original.key):\(original.modifiers)" }
+    var isMenu: Bool { groupID == "menu" }
 
     static let all: [ShortcutDefinition] = {
         func entry(_ title: String, _ key: String, _ modifiers: Int = 0, menu: Bool = false) -> ShortcutDefinition {
-            .init(title: title, group: menu ? "Menus" : "Canvas & Layers", original: ShortcutChord(key, modifiers))
+            .init(title: title, group: menu ? String(localized: "Menus") : String(localized: "Canvas & Layers"),
+                  groupID: menu ? "menu" : "canvas", original: ShortcutChord(key, modifiers))
         }
         var result: [ShortcutDefinition] = [
-            entry("Undo", "z", 1, menu: true), entry("Redo", "z", 9, menu: true),
-            entry("New Canvas", "n", 1, menu: true), entry("Open Project", "o", 1, menu: true),
-            entry("Save", "s", 1, menu: true), entry("Save As", "s", 9, menu: true),
-            entry("Export PNG", "e", 9, menu: true), entry("Export JPEG", "s", 11, menu: true),
-            entry("Close Project", "w", 1, menu: true), entry("Fit Canvas", "0", 1, menu: true),
-            entry("Actual Pixels", "1", 1, menu: true), entry("Zoom In", "=", 1, menu: true),
-            entry("Zoom Out", "-", 1, menu: true), entry("Show Transform Controls", "h", 1, menu: true),
-            entry("Hide Compositor", "h", 3, menu: true), entry("Cut", "x", 1, menu: true),
-            entry("Copy", "c", 1, menu: true), entry("Copy Merged", "c", 9, menu: true),
-            entry("Paste", "v", 1, menu: true), entry("Fill with Foreground", "\u{7f}", 2, menu: true),
-            entry("Fill with Background", "\u{7f}", 1, menu: true), entry("Content-Aware Fill", "\u{7f}", 8, menu: true),
-            entry("Select All", "a", 1, menu: true), entry("Deselect", "d", 1, menu: true),
-            entry("Inverse Selection", "i", 9, menu: true), entry("Select Subject", "a", 3, menu: true),
-            entry("Curves", "m", 1, menu: true), entry("Levels", "l", 1, menu: true),
-            entry("Hue/Saturation", "u", 1, menu: true), entry("Invert Pixels / Mask", "i", 1, menu: true),
-            entry("Canvas Size", "c", 3, menu: true), entry("Image Size", "i", 3, menu: true),
-            entry("Transform Layer / Selection", "t", 1, menu: true), entry("Duplicate / Layer via Copy", "j", 1, menu: true),
-            entry("Toggle Clipping Mask", "g", 3, menu: true), entry("Group Layers", "g", 1, menu: true),
-            entry("Ungroup Layers", "g", 9, menu: true),
-            entry("New Blank Layer", "n", 9, menu: true), entry("Move Layer Up", "]", 1, menu: true),
-            entry("Move Layer Down", "[", 1, menu: true), entry("Merge Layers", "e", 1, menu: true),
-            entry("Show Grid", "'", 1, menu: true), entry("Show Guides", ";", 1, menu: true),
-            entry("Show Rulers", "r", 1, menu: true), entry("Snap", ";", 9, menu: true),
-            entry("Lock Guides", ";", 3, menu: true)
+            entry(String(localized: "Undo"), "z", 1, menu: true), entry(String(localized: "Redo"), "z", 9, menu: true),
+            entry(String(localized: "New Canvas"), "n", 1, menu: true), entry(String(localized: "Open Project"), "o", 1, menu: true),
+            entry(String(localized: "Save"), "s", 1, menu: true), entry(String(localized: "Save As"), "s", 9, menu: true),
+            entry(String(localized: "Export PNG"), "e", 9, menu: true), entry(String(localized: "Export JPEG"), "s", 11, menu: true),
+            entry(String(localized: "Close Project"), "w", 1, menu: true), entry(String(localized: "Fit Canvas"), "0", 1, menu: true),
+            entry(String(localized: "Actual Pixels"), "1", 1, menu: true), entry(String(localized: "Zoom In"), "=", 1, menu: true),
+            entry(String(localized: "Zoom Out"), "-", 1, menu: true), entry(String(localized: "Show Transform Controls"), "h", 1, menu: true),
+            entry(String(localized: "Hide Compositor"), "h", 3, menu: true), entry(String(localized: "Cut"), "x", 1, menu: true),
+            entry(String(localized: "Copy"), "c", 1, menu: true), entry(String(localized: "Copy Merged"), "c", 9, menu: true),
+            entry(String(localized: "Paste"), "v", 1, menu: true), entry(String(localized: "Fill with Foreground"), "\u{7f}", 2, menu: true),
+            entry(String(localized: "Fill with Background"), "\u{7f}", 1, menu: true), entry(String(localized: "Content-Aware Fill"), "\u{7f}", 8, menu: true),
+            entry(String(localized: "Select All"), "a", 1, menu: true), entry(String(localized: "Deselect"), "d", 1, menu: true),
+            entry(String(localized: "Inverse Selection"), "i", 9, menu: true), entry(String(localized: "Select Subject"), "a", 3, menu: true),
+            entry(String(localized: "Curves"), "m", 1, menu: true), entry(String(localized: "Levels"), "l", 1, menu: true),
+            entry(String(localized: "Hue/Saturation"), "u", 1, menu: true), entry(String(localized: "Invert Pixels / Mask"), "i", 1, menu: true),
+            entry(String(localized: "Canvas Size"), "c", 3, menu: true), entry(String(localized: "Image Size"), "i", 3, menu: true),
+            entry(String(localized: "Transform Layer / Selection"), "t", 1, menu: true), entry(String(localized: "Duplicate / Layer via Copy"), "j", 1, menu: true),
+            entry(String(localized: "Toggle Clipping Mask"), "g", 3, menu: true), entry(String(localized: "Group Layers"), "g", 1, menu: true),
+            entry(String(localized: "Ungroup Layers"), "g", 9, menu: true),
+            entry(String(localized: "New Blank Layer"), "n", 9, menu: true), entry(String(localized: "Move Layer Up"), "]", 1, menu: true),
+            entry(String(localized: "Move Layer Down"), "[", 1, menu: true), entry(String(localized: "Merge Layers"), "e", 1, menu: true),
+            entry(String(localized: "Show Grid"), "'", 1, menu: true), entry(String(localized: "Show Guides"), ";", 1, menu: true),
+            entry(String(localized: "Show Rulers"), "r", 1, menu: true), entry(String(localized: "Snap"), ";", 9, menu: true),
+            entry(String(localized: "Lock Guides"), ";", 3, menu: true)
         ]
-        for (title, key) in [("Select tool", "a"), ("Move / Transform tool", "v"), ("Hand tool", "h"),
-            ("Zoom tool", "z"), ("Brush tool", "b"), ("Eraser", "e"), ("Spot Healing", "j"),
-            ("Clone Stamp", "s"), ("Type tool", "t"), ("Gradient tool", "g"), ("Shape tool", "u"),
-            ("Eyedropper tool", "i"), ("Marquee / cycle shape", "m"), ("Magic", "w"),
-            ("Lasso / cycle mode", "l"), ("Blur / Smudge / Liquify", "r"), ("Crop tool", "c"),
-            ("Swap foreground/background", "x"), ("Reset colors", "d"), ("Cycle tool mode", "\t"),
-            ("Temporary Hand tool (hold)", " "), ("Delete selection / layer / effect / lasso point", "\u{7f}"),
-            ("Apply current canvas operation", "\r"), ("Cancel current canvas operation", "\u{1b}"),
-            ("Decrease brush size", "["), ("Increase brush size", "]")] {
+        for (title, key) in [(String(localized: "Select tool"), "a"), (String(localized: "Move / Transform tool"), "v"), (String(localized: "Hand tool"), "h"),
+            (String(localized: "Zoom tool"), "z"), (String(localized: "Brush tool"), "b"), (String(localized: "Eraser"), "e"), (String(localized: "Spot Healing"), "j"),
+            (String(localized: "Clone Stamp"), "s"), (String(localized: "Type tool"), "t"), (String(localized: "Gradient tool"), "g"), (String(localized: "Shape tool"), "u"),
+            (String(localized: "Eyedropper tool"), "i"), (String(localized: "Marquee / cycle shape"), "m"), (String(localized: "Magic"), "w"),
+            (String(localized: "Lasso / cycle mode"), "l"), (String(localized: "Blur / Smudge / Liquify"), "r"), (String(localized: "Crop tool"), "c"),
+            (String(localized: "Swap foreground/background"), "x"), (String(localized: "Reset colors"), "d"), (String(localized: "Cycle tool mode"), "\t"),
+            (String(localized: "Temporary Hand tool (hold)"), " "), (String(localized: "Delete selection / layer / effect / lasso point"), "\u{7f}"),
+            (String(localized: "Apply current canvas operation"), "\r"), (String(localized: "Cancel current canvas operation"), "\u{1b}"),
+            (String(localized: "Decrease brush size"), "["), (String(localized: "Increase brush size"), "]")] {
             result.append(entry(title, key))
         }
-        result += [entry("Decrease brush hardness", "[", 8), entry("Increase brush hardness", "]", 8),
-                   entry("Previous blend mode", "-", 8), entry("Next blend mode", "=", 8),
-                   entry("Cycle shape kind", "u", 8)]
-        for digit in 0...9 { result.append(entry("Opacity digit \(digit) (type two for exact %)", String(digit))) }
-        for (direction, key) in [("Left", "\u{f702}"), ("Right", "\u{f703}"), ("Up", "\u{f700}"), ("Down", "\u{f701}")] {
-            result += [entry("Nudge \(direction) 1 px", key), entry("Nudge \(direction) 10 px", key, 8),
-                       entry("Move selected pixels \(direction) 1 px", key, 1), entry("Move selected pixels \(direction) 10 px", key, 9)]
+        result += [entry(String(localized: "Decrease brush hardness"), "[", 8), entry(String(localized: "Increase brush hardness"), "]", 8),
+                   entry(String(localized: "Previous blend mode"), "-", 8), entry(String(localized: "Next blend mode"), "=", 8),
+                   entry(String(localized: "Cycle shape kind"), "u", 8)]
+        for digit in 0...9 { result.append(entry(String(localized: "Opacity digit \(digit) (type two for exact %)"), String(digit))) }
+        for (direction, key) in [(String(localized: "Left"), "\u{f702}"), (String(localized: "Right"), "\u{f703}"), (String(localized: "Up"), "\u{f700}"), (String(localized: "Down"), "\u{f701}")] {
+            result += [entry(String(localized: "Nudge \(direction) 1 px"), key), entry(String(localized: "Nudge \(direction) 10 px"), key, 8),
+                       entry(String(localized: "Move selected pixels \(direction) 1 px"), key, 1), entry(String(localized: "Move selected pixels \(direction) 10 px"), key, 9)]
         }
-        result.append(.init(title: "Finish editing text", group: "Text Editing", original: ShortcutChord("\r", 1)))
-        for (title, key) in [("Decrease tracking", "\u{f702}"), ("Increase tracking", "\u{f703}"),
-                             ("Decrease leading", "\u{f700}"), ("Increase leading", "\u{f701}")] {
-            result.append(.init(title: title, group: "Text Editing", original: ShortcutChord(key, 2)))
-            result.append(.init(title: title + " by 10", group: "Text Editing", original: ShortcutChord(key, 10)))
+        result.append(.init(title: String(localized: "Finish editing text"), group: String(localized: "Text Editing"),
+                            groupID: "text", original: ShortcutChord("\r", 1)))
+        for (title, key) in [(String(localized: "Decrease tracking"), "\u{f702}"), (String(localized: "Increase tracking"), "\u{f703}"),
+                             (String(localized: "Decrease leading"), "\u{f700}"), (String(localized: "Increase leading"), "\u{f701}")] {
+            result.append(.init(title: title, group: String(localized: "Text Editing"),
+                                groupID: "text", original: ShortcutChord(key, 2)))
+            result.append(.init(title: String(localized: "\(title) by 10"), group: String(localized: "Text Editing"),
+                                groupID: "text", original: ShortcutChord(key, 10)))
         }
-        result.append(entry("Toggle Levels preview", "p", 2))
+        result.append(entry(String(localized: "Toggle Levels preview"), "p", 2))
         return result
     }()
 }
@@ -134,9 +145,16 @@ final class ShortcutSettings {
     @ObservationIgnored private let panel = FloatingPanelController(name: "keyboardShortcuts")
     private static let storageKey = "keyboardShortcuts.v1"
     private init() {
-        if let data = UserDefaults.standard.data(forKey: Self.storageKey),
-           let saved = try? JSONDecoder().decode([String: ShortcutChord].self, from: data),
-           Self.problem(in: saved) == nil { overrides = saved }
+        guard let data = UserDefaults.standard.data(forKey: Self.storageKey),
+              let saved = try? JSONDecoder().decode([String: ShortcutChord].self, from: data) else { return }
+        // Before shortcut titles were translatable, an override was keyed by its group and title.
+        // On an English Mac those are the same words as ever, so adopt the old value when the
+        // stable key has none; a translated title simply starts from the shipped chord.
+        var migrated = saved
+        for definition in ShortcutDefinition.all where migrated[definition.id] == nil {
+            if let legacy = saved["\(definition.group):\(definition.title)"] { migrated[definition.id] = legacy }
+        }
+        if Self.problem(in: migrated) == nil { overrides = migrated }
     }
     func chord(_ definition: ShortcutDefinition) -> ShortcutChord { overrides[definition.id] ?? definition.original }
     func menu(_ key: KeyEquivalent, modifiers: EventModifiers) -> ShortcutChord {
@@ -154,7 +172,7 @@ final class ShortcutSettings {
         return chord(definition)
     }
     func show() {
-        panel.show(title: "Keyboard Shortcuts", content: KeyboardShortcutsSheet(settings: self))
+        panel.show(title: String(localized: "Keyboard Shortcuts"), content: KeyboardShortcutsSheet(settings: self))
     }
     func close() { panel.close() }
     func save(_ values: [String: ShortcutChord]) {
@@ -167,14 +185,14 @@ final class ShortcutSettings {
         var assigned: [ShortcutChord: String] = [:]
         for definition in ShortcutDefinition.all {
             let chord = values[definition.id] ?? definition.original
-            guard chord.key.count == 1, (0...15).contains(chord.modifiers) else { return "Choose a single key with optional modifiers." }
-            if definition.group == "Text Editing", chord.modifiers & 7 == 0 {
-                return "Text-editing shortcuts need Command, Option, or Control so they do not replace normal typing."
+            guard chord.key.count == 1, (0...15).contains(chord.modifiers) else { return String(localized: "Choose a single key with optional modifiers.") }
+            if definition.groupID == "text", chord.modifiers & 7 == 0 {
+                return String(localized: "Text-editing shortcuts need Command, Option, or Control so they do not replace normal typing.")
             }
             if [ShortcutChord("q", 1), ShortcutChord(",", 1), ShortcutChord("m", 3)].contains(chord) {
-                return "\(chord.label) is reserved by macOS."
+                return String(localized: "\(chord.label) is reserved by macOS.")
             }
-            if let other = assigned[chord] { return "\(chord.label) is assigned to both \(other) and \(definition.title)." }
+            if let other = assigned[chord] { return String(localized: "\(chord.label) is assigned to both \(other) and \(definition.title).") }
             assigned[chord] = definition.title
         }
         return nil
@@ -185,10 +203,10 @@ final class ShortcutSettings {
     func canvasEvent(_ event: NSEvent) -> NSEvent? {
         guard !overrides.isEmpty else { return event }
         let input = ShortcutChord(event)
-        if let definition = ShortcutDefinition.all.first(where: { $0.group == "Canvas & Layers" && chord($0) == input }) {
+        if let definition = ShortcutDefinition.all.first(where: { $0.groupID == "canvas" && chord($0) == input }) {
             return definition.original == input ? event : definition.original.event(like: event)
         }
-        if ShortcutDefinition.all.contains(where: { $0.group != "Text Editing" && $0.original == input && chord($0) != input }) { return nil }
+        if ShortcutDefinition.all.contains(where: { $0.groupID != "text" && $0.original == input && chord($0) != input }) { return nil }
         // Letter tool shortcuts traditionally also accept Shift. Follow the base
         // assignment unless Shift has its own explicit command (e.g. cycle shape).
         if input.modifiers == 8 {
@@ -203,7 +221,7 @@ final class ShortcutSettings {
 
     func textEvent(_ event: NSEvent) -> NSEvent? {
         guard !overrides.isEmpty else { return event }
-        let definitions = ShortcutDefinition.all.filter { $0.group == "Text Editing" || $0.original == ShortcutChord("\u{1b}") }
+        let definitions = ShortcutDefinition.all.filter { $0.groupID == "text" || $0.original == ShortcutChord("\u{1b}") }
         let input = ShortcutChord(event)
         if let definition = definitions.first(where: { chord($0) == input }) {
             return definition.original == input ? event : definition.original.event(like: event)
@@ -239,9 +257,11 @@ private struct KeyboardShortcutsSheet: View {
             TextField("Search shortcuts", text: $search).textFieldStyle(.roundedBorder)
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 6) {
-                    ForEach(["Menus", "Canvas & Layers", "Text Editing"], id: \.self) { group in
-                        Text(group).font(.headline).padding(.top, 8)
-                        ForEach(ShortcutDefinition.all.filter { $0.group == group && (search.isEmpty || $0.title.localizedCaseInsensitiveContains(search)) }) { definition in
+                    ForEach([("menu", String(localized: "Menus")),
+                             ("canvas", String(localized: "Canvas & Layers")),
+                             ("text", String(localized: "Text Editing"))], id: \.0) { group in
+                        Text(group.1).font(.headline).padding(.top, 8)
+                        ForEach(ShortcutDefinition.all.filter { $0.groupID == group.0 && (search.isEmpty || $0.title.localizedCaseInsensitiveContains(search)) }) { definition in
                             HStack {
                                 Text(definition.title)
                                 Spacer()
@@ -289,8 +309,8 @@ private struct ShortcutRecorder: NSViewRepresentable {
     func makeNSView(context: Context) -> RecorderButton { RecorderButton() }
     func updateNSView(_ button: RecorderButton, context: Context) {
         button.start = start; button.finish = finish; button.recording = recording
-        button.title = recording ? "Press keys…" : chord.label
-        button.setAccessibilityLabel(recording ? "Press a shortcut" : chord.label)
+        button.title = recording ? String(localized: "Press keys…") : chord.label
+        button.setAccessibilityLabel(recording ? String(localized: "Press a shortcut") : chord.label)
         if recording, button.window?.firstResponder !== button { button.window?.makeFirstResponder(button) }
     }
     final class RecorderButton: NSButton {

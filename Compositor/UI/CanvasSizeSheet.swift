@@ -9,7 +9,7 @@ struct CanvasSizeSheet: View {
     @State private var anchor = 4
     @State private var extensionChoice = "Transparent"
     @State private var customColor = PaletteColor.white
-    private let anchorNames = ["Top left", "Top center", "Top right", "Middle left", "Center", "Middle right", "Bottom left", "Bottom center", "Bottom right"]
+    private let anchorNames = [String(localized: "Top left"), String(localized: "Top center"), String(localized: "Top right"), String(localized: "Middle left"), String(localized: "Center"), String(localized: "Middle right"), String(localized: "Bottom left"), String(localized: "Bottom center"), String(localized: "Bottom right")]
 
     init(document: CanvasDocument, session: EditorSession, finish: @escaping (CanvasSizeOptions?) -> Void) {
         self.foreground = session.foregroundColor
@@ -62,6 +62,18 @@ struct CanvasSizeSheet: View {
         guard let rgb = color.usingColorSpace(.sRGB) else { return nil }
         return CanvasExtensionColor(red: rgb.redComponent, green: rgb.greenComponent, blue: rgb.blueComponent)
     }
+    /// The choice's name for the picker; the choice itself stays the key `fill` reads.
+    private func extensionTitle(_ choice: String) -> String {
+        switch choice {
+        case "Transparent": String(localized: "Transparent")
+        case "Foreground": String(localized: "Foreground")
+        case "Background": String(localized: "Background")
+        case "Black": String(localized: "Black")
+        case "White": String(localized: "White")
+        case "Custom": String(localized: "Custom")
+        default: choice
+        }
+    }
 
     var body: some View { sheet.roundedControls() }
     @ViewBuilder private var sheet: some View {
@@ -72,7 +84,7 @@ struct CanvasSizeSheet: View {
                 .font(.callout).foregroundStyle(.secondary)
             Divider()
             Picker("Units", selection: $draft.unit) {
-                ForEach(CanvasUnit.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                ForEach(CanvasUnit.allCases, id: \.self) { Text($0.displayName).tag($0) }
             }
             HStack {
                 Text("Width").frame(width: 60, alignment: .leading)
@@ -123,12 +135,12 @@ struct CanvasSizeSheet: View {
                 }.padding(.top, 28)
             }
             Picker("Canvas extension", selection: $extensionChoice) {
-                ForEach(["Transparent", "Foreground", "Background", "Black", "White", "Custom"], id: \.self) { Text($0) }
+                ForEach(["Transparent", "Foreground", "Background", "Black", "White", "Custom"], id: \.self) { Text(extensionTitle($0)) }
             }
             if extensionChoice == "Custom" {
                 HStack(spacing: 8) {
                     Text("Extension color")
-                    DialogColorSwatch(title: "Extension Color", color: $customColor, session: session)
+                    DialogColorSwatch(title: String(localized: "Extension Color"), color: $customColor, session: session)
                         .help("Color for the added canvas")
                 }
             }
