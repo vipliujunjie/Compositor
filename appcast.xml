@@ -8,8 +8,8 @@
       <sparkle:version>40</sparkle:version>
       <sparkle:shortVersionString>1.4.5</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <link>https://github.com/robbietilton/Compositor/releases/tag/v1.4.5</link>
-      <enclosure url="https://github.com/robbietilton/Compositor/releases/download/v1.4.5/Compositor.dmg" sparkle:edSignature="hi5DnGPronFXpzPxqM5U0XyucShkw8CBlxH0vX/gDv7Oxk5u/vmAm6fTgAxIIVlfpFXsMQpoqh5IW0IaJAe0Bg==" length="6750067" type="application/octet-stream"/>
+      <link>https://github.com/vipliujunjie/Compositor/releases/tag/v1.4.5</link>
+      <enclosure url="https://github.com/vipliujunjie/Compositor/releases/download/v1.4.5/Compositor.dmg" sparkle:edSignature="hi5DnGPronFXpzPxqM5U0XyucShkw8CBlxH0vX/gDv7Oxk5u/vmAm6fTgAxIIVlfpFXsMQpoqh5IW0IaJAe0Bg==" length="6750067" type="application/octet-stream"/>
     </item>
   </channel>
 </rss>

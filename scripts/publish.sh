@@ -10,7 +10,7 @@ PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 APP=Compositor
 # Matches release.sh, which names the DMG with this suffix.
 SUFFIX="${SUFFIX:--zh}"
-REPO=robbietilton/Compositor
+REPO=vipliujunjie/Compositor
 WORK="$HOME/Library/Caches/CompositorRelease"
 SIGN_UPDATE="$WORK/DerivedData/SourcePackages/artifacts/sparkle/Sparkle/bin/sign_update"
 
