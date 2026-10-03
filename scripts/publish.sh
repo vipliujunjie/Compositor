@@ -8,6 +8,8 @@ set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 APP=Compositor
+# Matches release.sh, which names the DMG with this suffix.
+SUFFIX="${SUFFIX:--zh}"
 REPO=robbietilton/Compositor
 WORK="$HOME/Library/Caches/CompositorRelease"
 SIGN_UPDATE="$WORK/DerivedData/SourcePackages/artifacts/sparkle/Sparkle/bin/sign_update"
@@ -17,7 +19,7 @@ VERSION=$(print -r -- "$settings" | awk -F' = ' '/ MARKETING_VERSION = /{print $
 BUILD=$(print -r -- "$settings" | awk -F' = ' '/ CURRENT_PROJECT_VERSION = /{print $2; exit}')
 MINIMUM=$(print -r -- "$settings" | awk -F' = ' '/ MACOSX_DEPLOYMENT_TARGET = /{print $2; exit}')
 TAG="v$VERSION"
-SOURCE="$PROJECT_DIR/dist/$APP-$VERSION.dmg"
+SOURCE="$PROJECT_DIR/dist/$APP-$VERSION$SUFFIX.dmg"
 [[ -f "$SOURCE" ]] || { echo "No $SOURCE — run scripts/release.sh first."; exit 1; }
 [[ -x "$SIGN_UPDATE" ]] || { echo "Sparkle's sign_update isn't built — run scripts/release.sh first."; exit 1; }
 if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
