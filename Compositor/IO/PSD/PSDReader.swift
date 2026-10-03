@@ -42,12 +42,14 @@ nonisolated enum PSDReader {
               canvasWidth * canvasHeight <= DocumentLimits.maxSurfacePixels else {
             throw ImageImportError.tooLarge
         }
-        guard depth == 8 else { throw PSDError.unsupportedDepth(Int(depth)) }
-        guard mode == 3 else { throw PSDError.unsupportedColorMode(Int(mode)) }
+        guard depth == 8 || depth == 16 || depth == 32 else { throw PSDError.unsupportedDepth(Int(depth)) }
+        guard mode == 3 || mode == 4 else { throw PSDError.unsupportedColorMode(Int(mode)) }
+        let isCMYK = mode == 4
         try cursor.skip(Int(try cursor.u32()))
         let resourcesLength = Int(try cursor.u32())
         let resourcesEnd = cursor.offset + resourcesLength
         var resolution = 72.0
+        var profileData: Data?
         while cursor.offset + 12 <= resourcesEnd {
             let signature = try cursor.string(4)
             guard signature == "8BIM" else { break }
@@ -62,14 +64,18 @@ nonisolated enum PSDReader {
                 if !resolution.isFinite || resolution < 1 { resolution = 72 }
                 resolution = min(9600, max(1, resolution))
             }
+            if id == 1039, length > 0 { profileData = try cursor.bytes(length) }
             cursor.offset = dataStart + length
             if length % 2 == 1 { try cursor.skip(1) }
         }
         cursor.offset = resourcesEnd
+        // The profile Photoshop worked in, when it is the CMYK one this mode needs.
+        let cmykSpace = isCMYK ? profileData.flatMap { CGColorSpace(iccData: $0 as CFData) }
+            .flatMap { $0.model == .cmyk ? $0 : nil } : nil
         let layerSection = try checkedLength(isPSB ? cursor.u64() : UInt64(cursor.u32()))
         let layerSectionEnd = cursor.offset + layerSection
         guard layerSection >= 4 else {
-            return PSDDocument(width: canvasWidth, height: canvasHeight, resolution: resolution, layers: [])
+            return PSDDocument(width: canvasWidth, height: canvasHeight, resolution: resolution, layers: [], sourceDepth: Int(depth), isCMYK: isCMYK)
         }
         let layerInfoLength = try checkedLength(isPSB ? cursor.u64() : UInt64(cursor.u32()))
         _ = layerInfoLength
@@ -87,13 +93,15 @@ nonisolated enum PSDReader {
         }
         var usedPixels = 0
         for index in raw.indices {
-            try decodeChannels(&cursor, layer: &raw[index], remainingPixels: remainingPixels - usedPixels, isPSB: isPSB)
+            try decodeChannels(&cursor, layer: &raw[index], remainingPixels: remainingPixels - usedPixels, isPSB: isPSB,
+                               depth: Int(depth), isCMYK: isCMYK, cmykSpace: cmykSpace)
             if let image = raw[index].image { usedPixels += image.width * image.height }
         }
         cursor.offset = layerSectionEnd
         return PSDDocument(width: canvasWidth, height: canvasHeight, resolution: resolution,
                            layers: try assemble(raw, canvas: CGSize(width: canvasWidth, height: canvasHeight),
-                                                remainingPixels: remainingPixels - usedPixels))
+                                                remainingPixels: remainingPixels - usedPixels),
+                           sourceDepth: Int(depth), isCMYK: isCMYK)
     }
 
     private struct RawLayer {
@@ -280,7 +288,8 @@ nonisolated enum PSDReader {
                        width: croppedRight - croppedLeft, height: croppedBottom - croppedTop)
     }
 
-    private static func decodeChannels(_ cursor: inout PSDCursor, layer: inout RawLayer, remainingPixels: Int, isPSB: Bool) throws {
+    private static func decodeChannels(_ cursor: inout PSDCursor, layer: inout RawLayer, remainingPixels: Int, isPSB: Bool,
+                                       depth: Int, isCMYK: Bool, cmykSpace: CGColorSpace?) throws {
         var planes: [Int: [UInt8]] = [:]
         let width = max(0, layer.right - layer.left)
         let height = max(0, layer.bottom - layer.top)
@@ -305,8 +314,16 @@ nonisolated enum PSDReader {
             let targetH = isMask ? maskHeight : height
             let crop = isMask ? layer.maskCrop : layer.imageCrop
             if targetW > 0, targetH > 0 {
+                let expected = targetW * targetH
                 planes[channel.id] = try PSDChannelCoder.decode(compression: compression, width: sourceW, height: sourceH,
-                                                                 data: payload, largeDocument: isPSB, crop: crop)
+                                                                 depth: depth, data: payload, largeDocument: isPSB, crop: crop)
+                // Channels follow the document's depth, but a file that stored an 8-bit mask in a
+                // deeper document would come back short, so read that one again as 8-bit rather than
+                // losing the mask.
+                if isMask, depth != 8, (planes[channel.id]?.count ?? 0) < expected {
+                    planes[channel.id] = try PSDChannelCoder.decode(compression: compression, width: sourceW, height: sourceH,
+                                                                     depth: 8, data: payload, largeDocument: isPSB, crop: crop)
+                }
             }
         }
         if layer.hasMask, maskWidth > 0, maskHeight > 0, let gray = planes[-2], gray.count >= maskWidth * maskHeight {
@@ -315,10 +332,21 @@ nonisolated enum PSDReader {
         guard width > 0, height > 0 else { return }
         let opaque = [UInt8](repeating: 255, count: width * height)
         let black = [UInt8](repeating: 0, count: width * height)
+        let alpha = planes[-1] ?? opaque
+        if isCMYK {
+            guard alpha.count >= width * height else { throw PSDError.truncated }
+            // Photoshop stores ink with 255 for no ink; the coder takes ink amounts.
+            func ink(_ id: Int) -> [UInt8] {
+                guard let plane = planes[id], plane.count >= width * height else { return black }
+                return plane.map { 255 - $0 }
+            }
+            layer.image = try PSDChannelCoder.cmykImage(width: width, height: height, cyan: ink(0), magenta: ink(1),
+                                                        yellow: ink(2), key: ink(3), alpha: alpha, profile: cmykSpace)
+            return
+        }
         let red = planes[0] ?? black
         let green = planes[1] ?? black
         let blue = planes[2] ?? black
-        let alpha = planes[-1] ?? opaque
         guard red.count >= width * height, green.count >= width * height, blue.count >= width * height, alpha.count >= width * height else {
             throw PSDError.truncated
         }

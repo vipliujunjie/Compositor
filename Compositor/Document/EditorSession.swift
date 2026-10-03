@@ -841,11 +841,12 @@ final class EditorSession {
                             continue
                         }
                         let assets = try await ImageImporter.shared.photoshopAssets(parsed)
-                        imported = try PSDDocumentBuilder.makeImport(parsed, assets: assets)
+                        var made = try PSDDocumentBuilder.makeImport(parsed, assets: assets)
+                        made.conversions.insert(contentsOf: Self.psdFileNotes(for: url, document: parsed), at: 0)
+                        imported = made
                     } catch let error as PSDError where error.requiresRasterImport {
-                        // 16-bit, 32-bit and files that aren't RGB: the reader takes 8-bit RGB only, and
-                        // Photoshop's own merged image is what can come in, as one 8-bit sRGB layer. The
-                        // conversion is reported before it is applied, like every other Photoshop import.
+                        // A colour mode or layer compression the reader doesn't take: Photoshop's own
+                        // merged image still can, as one 8-bit sRGB layer, reported before it is applied.
                         guard let asset = try? await ImageImporter.shared.decode(url, remainingPixels: DocumentLimits.documentPixelBudget - usedPixels,
                                                                                  flattenedPhotoshop: true) else {
                             endPSDReading()
@@ -893,6 +894,19 @@ final class EditorSession {
         activeLayerID = layer.id
     }
 
+    /// What the report says, before the per-layer notes, for a conversion the whole file shares.
+    static func psdFileNotes(for url: URL, document: PSDDocument) -> [PSDConversion] {
+        let name = url.deletingPathExtension().lastPathComponent
+        var notes: [PSDConversion] = []
+        if document.sourceDepth != 8 {
+            notes.append(PSDConversion(layerName: name, message: String(localized: "This Photoshop file is \(document.sourceDepth)-bit. It was imported as 8 bits per channel, and its layers are unchanged.")))
+        }
+        if document.isCMYK {
+            notes.append(PSDConversion(layerName: name, message: String(localized: "This Photoshop file is CMYK, so its pixels were converted to sRGB. Blend modes composite in sRGB, so the appearance can differ slightly from Photoshop’s CMYK result.")))
+        }
+        return notes
+    }
+
     /// What the conversion report says when a file the reader can't take comes in as its merged image.
     static func rasterConversionNotes(for url: URL, error: PSDError) -> [PSDConversion] {
         let name = url.deletingPathExtension().lastPathComponent
@@ -901,6 +915,8 @@ final class EditorSession {
             return [PSDConversion(layerName: name, message: String(localized: "This Photoshop file is \(bits)-bit, so its merged image was imported as 8-bit sRGB pixels. Its layers are no longer editable."))]
         case .unsupportedColorMode(let mode):
             return [PSDConversion(layerName: name, message: String(localized: "This Photoshop file is \(psdColorModeName(mode)), so its merged image was imported as 8-bit sRGB pixels. Its layers are no longer editable."))]
+        case .unsupportedCompression:
+            return [PSDConversion(layerName: name, message: String(localized: "This Photoshop file compresses its layers in a way Compositor doesn’t read, so its merged image was imported as pixels. Its layers are no longer editable."))]
         default:
             return []
         }

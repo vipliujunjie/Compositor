@@ -3,9 +3,8 @@ import Foundation
 import Testing
 @testable import Compositor
 
-/// Photoshop files Compositor reads as pixels rather than layers: 16-bit, 32-bit, and anything that
-/// isn't RGB. The reader still refuses them — that is what tells the importer to fall back to the
-/// merged image Photoshop wrote, which `ImageImporter.decode(flattenedPhotoshop:)` reads.
+/// Flattened Photoshop files, and the modes the reader doesn't take at all: those come in as
+/// Photoshop's own merged image, which `ImageImporter.decode(flattenedPhotoshop:)` reads.
 @Suite("Photoshop raster fallback")
 struct PSDRasterFallbackTests {
     /// A flattened Photoshop file: header, empty sections, then raw channel planes.
@@ -28,7 +27,7 @@ struct PSDRasterFallbackTests {
         u32(width)
         u16(depth)
         u16(mode)
-        u32(0)          // colour mode data
+        u32(0)          // color mode data
         u32(0)          // image resources
         u32(0)          // layer and mask info
         u16(0)          // image data, uncompressed
@@ -86,7 +85,9 @@ struct PSDRasterFallbackTests {
             plane16(width: width, height: height) { _, y in UInt16(y * 32_000) },
             plane16(width: width, height: height) { _, _ in 32_768 },
         ])
-        #expect(throws: PSDError.unsupportedDepth(16)) { try PSDReader.read(data) }
+        let parsed = try PSDReader.read(data)
+        #expect(parsed.sourceDepth == 16)
+        #expect(parsed.layers.isEmpty, "a flattened file has no layer records")
 
         let asset = try await ImageImporter.shared.decode(try temporary(data), flattenedPhotoshop: true)
         #expect(asset.image.width == width && asset.image.height == height)
@@ -104,8 +105,7 @@ struct PSDRasterFallbackTests {
             plane32(width: width, height: height) { _, y in Float(y) / 15 },
             plane32(width: width, height: height) { _, _ in 0.5 },
         ])
-        #expect(throws: PSDError.unsupportedDepth(32)) { try PSDReader.read(data) }
-
+        #expect(try PSDReader.read(data).sourceDepth == 32)
         let asset = try await ImageImporter.shared.decode(try temporary(data), flattenedPhotoshop: true)
         let sample = try pixel(asset.image, x: 3, y: 1)
         #expect(abs(sample.r - 51) <= 3, "red was \(sample.r)")
@@ -123,8 +123,7 @@ struct PSDRasterFallbackTests {
             plane8(width: width, height: height) { _, _ in 255 },
             plane8(width: width, height: height) { x, _ in UInt8(255 - x * 60) },
         ])
-        #expect(throws: PSDError.unsupportedColorMode(4)) { try PSDReader.read(data) }
-
+        #expect(try PSDReader.read(data).isCMYK)
         let asset = try await ImageImporter.shared.decode(try temporary(data), flattenedPhotoshop: true)
         #expect(asset.image.width == width && asset.image.height == height)
         // No ink at the left edge comes through as white; more black ink makes it darker.
@@ -159,8 +158,13 @@ struct PSDRasterFallbackTests {
         #expect(mode[0].message.contains("CMYK"))
         #expect(mode[0].message.contains("no longer editable"))
 
+        // Compression the coder doesn't unpack still comes in, and says so.
+        let compression = EditorSession.rasterConversionNotes(for: url, error: .unsupportedCompression)
+        #expect(compression.count == 1)
+        #expect(compression[0].message.contains("layers are no longer editable"))
+
         // Other reader errors are failures, not conversions, so they report nothing.
         #expect(EditorSession.rasterConversionNotes(for: url, error: .truncated).isEmpty)
-        #expect(EditorSession.rasterConversionNotes(for: url, error: .unsupportedCompression).isEmpty)
+        #expect(EditorSession.rasterConversionNotes(for: url, error: .unsupportedVersion).isEmpty)
     }
 }

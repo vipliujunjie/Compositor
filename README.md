@@ -68,7 +68,7 @@ brew install --cask robbietilton-compositor
 - Crop with snapping, ratios including 3:4 and 9:16, and Option for symmetric cropping; with a selection, the crop starts at it
 - Canvas Size, Image Size and Trim
 - Sharp high-quality downsampling when zoomed out, and a pixel grid when zoomed in
-- Import JPEG, PNG, HEIC, TIFF, SVG, camera RAW (with a develop step first) and Photoshop PSD and PSB. An 8-bit RGB file keeps its folders, masks, blend modes, fill rectangles/ellipses and simple horizontal text editable; other vectors and vertical text become pixels. 16-bit, 32-bit and CMYK files come in as Photoshop's merged image, converted to 8-bit sRGB, and the conversion is reported before anything is applied.
+- Import JPEG, PNG, HEIC, TIFF, SVG, camera RAW (with a develop step first) and Photoshop PSD and PSB, including 8-, 16- and 32-bit RGB and CMYK files. Layers, folders, masks, blend modes, fill rectangles/ellipses and simple horizontal text come in; other vectors and vertical text become pixels. Deeper and CMYK files are reduced to 8-bit sRGB on the way in, and the conversion is reported before anything is applied.
 - Large documents: the memory budget scales with your Mac, and a Photoshop file too big to open has its layers cropped to the canvas instead
 - Export JPEG with a live preview (⇧⌥⌘S); Copy Merged
 - Keep working while a project saves

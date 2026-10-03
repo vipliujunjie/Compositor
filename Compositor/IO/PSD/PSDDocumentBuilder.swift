@@ -6,7 +6,7 @@ nonisolated struct PSDImport: @unchecked Sendable {
     let height: Int
     let resolution: Double
     let layers: [ImageLayer]
-    let conversions: [PSDConversion]
+    var conversions: [PSDConversion]
 }
 
 nonisolated enum PSDDocumentBuilder {

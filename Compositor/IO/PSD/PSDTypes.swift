@@ -6,16 +6,17 @@ nonisolated enum PSDError: LocalizedError, Equatable {
     case truncated, unsupportedVersion
     /// Bits per channel, as the file declares it: 1, 8, 16 or 32.
     case unsupportedDepth(Int)
-    /// Photoshop's colour mode value: 0 bitmap, 1 grayscale, 2 indexed, 3 RGB, 4 CMYK, 7 multichannel,
+    /// Photoshop's color mode value: 0 bitmap, 1 grayscale, 2 indexed, 3 RGB, 4 CMYK, 7 multichannel,
     /// 8 duotone, 9 Lab.
     case unsupportedColorMode(Int)
     case unsupportedCompression
 
-    /// True for the files the reader can't take but Photoshop's own merged image can supply: 16-bit,
-    /// 32-bit and everything that isn't RGB. The importer reads those as pixels instead of failing.
+    /// True for the files the reader can't take but Photoshop's own merged image can supply: a color
+    /// mode other than RGB and CMYK, a bit depth other than 8, 16 or 32, or layer compression the
+    /// coder doesn't unpack. The importer reads those as pixels instead of failing.
     var requiresRasterImport: Bool {
         switch self {
-        case .unsupportedDepth, .unsupportedColorMode: true
+        case .unsupportedDepth, .unsupportedColorMode, .unsupportedCompression: true
         default: false
         }
     }
@@ -33,7 +34,7 @@ nonisolated enum PSDError: LocalizedError, Equatable {
     }
 }
 
-/// The name Photoshop gives a colour mode, for a message the reader can act on. RGB needs no name
+/// The name Photoshop gives a color mode, for a message the reader can act on. RGB needs no name
 /// here: it is the mode the reader reads.
 nonisolated func psdColorModeName(_ mode: Int) -> String {
     switch mode {
@@ -65,6 +66,10 @@ nonisolated struct PSDDocument: @unchecked Sendable {
     var resolution: Double
     /// Bottom to top, including folders. Hidden section dividers are not stored.
     var layers: [PSDRecord]
+    /// The file's bits per channel, so the report can say when it was reduced to 8.
+    var sourceDepth = 8
+    /// The file is CMYK, so its layers were converted to sRGB on the way in.
+    var isCMYK = false
 }
 
 nonisolated struct PSDRecord: @unchecked Sendable {

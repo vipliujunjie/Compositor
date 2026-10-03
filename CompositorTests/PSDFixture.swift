@@ -5,8 +5,9 @@ import Foundation
 /// Builds tiny Photoshop files for reader tests. Not part of the app; Compositor does not write PSD.
 nonisolated enum PSDFixture {
     static func data(_ document: PSDDocument, composite: CGImage, largeDocument: Bool = false,
-                     extras: [UUID: [String: Data]] = [:]) throws -> Data {
-        try data(document, composite: composite, largeDocument: largeDocument, additionalLayerInfo: nil, extras: extras)
+                     colorMode: Int = 3, depth: Int = 8, extras: [UUID: [String: Data]] = [:]) throws -> Data {
+        try data(document, composite: composite, largeDocument: largeDocument, colorMode: colorMode, depth: depth,
+                 additionalLayerInfo: nil, extras: extras)
     }
 
     struct AdditionalLayerInfo: Sendable {
@@ -14,7 +15,8 @@ nonisolated enum PSDFixture {
         let payload: Data
     }
 
-    static func data(_ document: PSDDocument, composite: CGImage, largeDocument: Bool, additionalLayerInfo: AdditionalLayerInfo?,
+    static func data(_ document: PSDDocument, composite: CGImage, largeDocument: Bool, colorMode: Int = 3, depth: Int = 8,
+                     additionalLayerInfo: AdditionalLayerInfo?,
                      extras: [UUID: [String: Data]] = [:]) throws -> Data {
         let width = document.width, height = document.height
         guard (1...30_000).contains(width), (1...30_000).contains(height) else { throw ImageImportError.tooLarge }
@@ -22,20 +24,22 @@ nonisolated enum PSDFixture {
         file.string("8BPS")
         file.u16(largeDocument ? 2 : 1)
         file.bytes(Data(count: 6))
-        file.u16(4)
+        file.u16(colorMode == 4 ? 5 : 4)
         file.u32(UInt32(height))
         file.u32(UInt32(width))
-        file.u16(8)
-        file.u16(3)
+        file.u16(UInt16(depth))
+        file.u16(UInt16(colorMode))
         file.u32(0)
         let resources = resolutionResource(document.resolution)
         file.u32(UInt32(resources.count))
         file.bytes(resources)
-        let layers = try layerSection(document, largeDocument: largeDocument, additionalLayerInfo: additionalLayerInfo, extras: extras)
+        let layers = try layerSection(document, largeDocument: largeDocument, colorMode: colorMode, depth: depth,
+                                      additionalLayerInfo: additionalLayerInfo, extras: extras)
         if largeDocument { file.u64(UInt64(layers.count)) }
         else { file.u32(UInt32(layers.count)) }
         file.bytes(layers)
-        try appendComposite(&file, composite, width: width, height: height, largeDocument: largeDocument)
+        try appendComposite(&file, composite, width: width, height: height, largeDocument: largeDocument,
+                            colorMode: colorMode, depth: depth)
         return file.data
     }
 
@@ -48,7 +52,8 @@ nonisolated enum PSDFixture {
         var extras: [String: Data] = [:]
     }
 
-    private static func layerSection(_ document: PSDDocument, largeDocument: Bool, additionalLayerInfo: AdditionalLayerInfo?,
+    private static func layerSection(_ document: PSDDocument, largeDocument: Bool, colorMode: Int, depth: Int,
+                                     additionalLayerInfo: AdditionalLayerInfo?,
                                      extras: [UUID: [String: Data]]) throws -> Data {
         var prepared: [Prepared] = []
         func emit(_ parent: UUID?) throws {
@@ -60,7 +65,8 @@ nonisolated enum PSDFixture {
                     prepared.append(try emptyLayer(name: record.name, blendKey: record.blendKey == "pass" ? "pass" : record.blendKey,
                                                    section: 1, visible: record.isVisible, opacity: record.opacity, parent: record.parentID, id: record.id, mask: record.mask, maskEnabled: record.maskEnabled, largeDocument: largeDocument))
                 } else {
-                    prepared.append(try layer(record, largeDocument: largeDocument, extras: extras[record.id] ?? [:]))
+                    prepared.append(try layer(record, largeDocument: largeDocument, colorMode: colorMode, depth: depth,
+                                              extras: extras[record.id] ?? [:]))
                 }
             }
         }
@@ -91,7 +97,8 @@ nonisolated enum PSDFixture {
         return section.data
     }
 
-    private static func layer(_ record: PSDRecord, largeDocument: Bool, extras: [String: Data] = [:]) throws -> Prepared {
+    private static func layer(_ record: PSDRecord, largeDocument: Bool, colorMode: Int, depth: Int,
+                              extras: [String: Data] = [:]) throws -> Prepared {
         let image = record.image
         let width = image?.width ?? 0
         let height = image?.height ?? 0
@@ -99,9 +106,17 @@ nonisolated enum PSDFixture {
         let top = Int(record.bounds.minY.rounded())
         var channels: [(id: Int16, payload: Data)] = []
         if let image, width > 0, height > 0 {
-            let planes = try planes(from: image)
-            for (id, plane) in [(-1, planes.alpha), (0, planes.red), (1, planes.green), (2, planes.blue)] as [(Int16, [UInt8])] {
-                channels.append((id, channelPayload(plane, width: width, height: height, largeDocument: largeDocument)))
+            let sources: [(Int16, [UInt8])]
+            if colorMode == 4 {
+                let ink = try cmykPlanes(from: image)
+                sources = [(-1, ink.alpha), (0, ink.cyan), (1, ink.magenta), (2, ink.yellow), (3, ink.key)]
+            } else {
+                let rgba = try planes(from: image)
+                sources = [(-1, rgba.alpha), (0, rgba.red), (1, rgba.green), (2, rgba.blue)]
+            }
+            for (id, plane) in sources {
+                channels.append((id, channelPayload(plane, width: width, height: height, depth: depth,
+                                                    largeDocument: largeDocument)))
             }
         } else {
             channels = emptyChannels()
@@ -142,8 +157,10 @@ nonisolated enum PSDFixture {
         [(-1, Data([0, 0])), (0, Data([0, 0])), (1, Data([0, 0])), (2, Data([0, 0]))]
     }
 
-    private static func channelPayload(_ plane: [UInt8], width: Int, height: Int, largeDocument: Bool) -> Data {
-        let encoded = encode(plane, width: width, height: height, largeDocument: largeDocument)
+    private static func channelPayload(_ plane: [UInt8], width: Int, height: Int, depth: Int = 8,
+                                       largeDocument: Bool) -> Data {
+        let encoded = encode(sampleBytes(plane, depth: depth), width: width * (depth / 8), height: height,
+                             largeDocument: largeDocument)
         var data = Data([UInt8(encoded.compression >> 8), UInt8(encoded.compression & 0xff)])
         data.append(encoded.data)
         return data
@@ -408,22 +425,64 @@ nonisolated enum PSDFixture {
         return resource.data
     }
 
-    private static func appendComposite(_ file: inout PSDBuffer, _ image: CGImage, width: Int, height: Int, largeDocument: Bool) throws {
+    private static func appendComposite(_ file: inout PSDBuffer, _ image: CGImage, width: Int, height: Int,
+                                        largeDocument: Bool, colorMode: Int, depth: Int) throws {
         let context = try BrushRaster.context(width: width, height: height, mask: false)
         BrushRaster.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height), mask: false, context: context)
         guard let flattened = context.makeImage() else { throw ExportError.render }
-        let planes = try planes(from: flattened)
+        var composite: [[UInt8]]
+        if colorMode == 4 {
+            let ink = try cmykPlanes(from: flattened)
+            composite = [ink.cyan, ink.magenta, ink.yellow, ink.key, ink.alpha]
+        } else {
+            let rgba = try planes(from: flattened)
+            composite = [rgba.red, rgba.green, rgba.blue, rgba.alpha]
+        }
         file.u16(1)
         var counts = Data()
         var packed = Data()
-        for plane in [planes.red, planes.green, planes.blue, planes.alpha] {
-            let encoded = encode(plane, width: width, height: height, largeDocument: largeDocument)
+        for plane in composite {
+            let encoded = encode(sampleBytes(plane, depth: depth), width: width * (depth / 8), height: height,
+                                 largeDocument: largeDocument)
             let countBytes = height * (largeDocument ? 4 : 2)
             counts.append(encoded.data.prefix(countBytes))
             packed.append(encoded.data.dropFirst(countBytes))
         }
         file.bytes(counts)
         file.bytes(packed)
+    }
+
+    /// CMYK ink planes, with the file holding 255 for no ink the way Photoshop writes them.
+    private static func cmykPlanes(from image: CGImage) throws
+        -> (cyan: [UInt8], magenta: [UInt8], yellow: [UInt8], key: [UInt8], alpha: [UInt8]) {
+        let width = image.width, height = image.height
+        var bytes = [UInt8](repeating: 0, count: width * height * 4)
+        guard let context = CGContext(data: &bytes, width: width, height: height, bitsPerComponent: 8,
+                                      bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceCMYK(),
+                                      bitmapInfo: CGImageAlphaInfo.none.rawValue) else { throw ExportError.render }
+        context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        var cyan = [UInt8](repeating: 0, count: width * height)
+        var magenta = cyan, yellow = cyan, key = cyan
+        for i in 0..<(width * height) {
+            cyan[i] = 255 - bytes[i * 4]
+            magenta[i] = 255 - bytes[i * 4 + 1]
+            yellow[i] = 255 - bytes[i * 4 + 2]
+            key[i] = 255 - bytes[i * 4 + 3]
+        }
+        return (cyan, magenta, yellow, key, try planes(from: image).alpha)
+    }
+
+    /// One sample per byte becomes the file's own sample size. The low byte is deliberately one the
+    /// reader has to ignore: a 16-bit sample keeps its high byte.
+    private static func sampleBytes(_ plane: [UInt8], depth: Int) -> [UInt8] {
+        switch depth {
+        case 16:
+            return plane.flatMap { [$0, 0xA5] }
+        case 32:
+            return plane.flatMap { withUnsafeBytes(of: (Float($0) / 255).bitPattern.bigEndian) { Array($0) } }
+        default:
+            return plane
+        }
     }
 
     private static func encode(_ plane: [UInt8], width: Int, height: Int, largeDocument: Bool = false) -> (compression: UInt16, data: Data) {
