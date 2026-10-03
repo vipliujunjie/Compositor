@@ -16,10 +16,11 @@ nonisolated enum PSDChannelCoder {
         guard width > 0, height > 0 else { return [] }
         guard depth == 8 || depth == 16 || depth == 32 else { throw PSDError.unsupportedDepth(depth) }
         let sampleBytes = depth / 8
+        let payload = [UInt8](data)
         let decoded: [UInt8]
         guard let crop else {
             decoded = try decodeFull(compression: compression, width: width, height: height,
-                                     sampleBytes: sampleBytes, data: data, largeDocument: largeDocument)
+                                     sampleBytes: sampleBytes, data: payload, largeDocument: largeDocument)
             return reduced(decoded, depth: depth)
         }
         guard crop.x >= 0, crop.y >= 0, crop.width >= 0, crop.height >= 0,
@@ -27,9 +28,9 @@ nonisolated enum PSDChannelCoder {
         guard crop.width > 0, crop.height > 0 else { return [] }
         switch compression {
         case 0:
-            decoded = try cropRaw(width: width, height: height, sampleBytes: sampleBytes, data: data, crop: crop)
+            decoded = try cropRaw(width: width, height: height, sampleBytes: sampleBytes, data: payload, crop: crop)
         case 1:
-            decoded = try unpackRLE(width: width, height: height, sampleBytes: sampleBytes, data: data,
+            decoded = try unpackRLE(width: width, height: height, sampleBytes: sampleBytes, data: payload,
                                     largeDocument: largeDocument, crop: crop)
         default:
             throw PSDError.unsupportedCompression
@@ -59,7 +60,7 @@ nonisolated enum PSDChannelCoder {
     }
 
     private static func decodeFull(compression: Int, width: Int, height: Int, sampleBytes: Int,
-                                   data: Data, largeDocument: Bool) throws -> [UInt8] {
+                                   data: [UInt8], largeDocument: Bool) throws -> [UInt8] {
         let expected = width * height * sampleBytes
         switch compression {
         case 0:
@@ -73,7 +74,7 @@ nonisolated enum PSDChannelCoder {
         }
     }
 
-    private static func cropRaw(width: Int, height: Int, sampleBytes: Int, data: Data, crop: PSDCrop) throws -> [UInt8] {
+    private static func cropRaw(width: Int, height: Int, sampleBytes: Int, data: [UInt8], crop: PSDCrop) throws -> [UInt8] {
         guard data.count >= width * height * sampleBytes else { throw PSDError.truncated }
         let sourceRow = width * sampleBytes
         let cropBytes = crop.width * sampleBytes
@@ -114,8 +115,9 @@ nonisolated enum PSDChannelCoder {
     }
 
     /// A CMYK layer's pixels, converted to the sRGB working space by drawing them through a CMYK
-    /// color space — the profile Photoshop embedded, when there is one — and then premultiplied by
-    /// the layer's alpha the way `rgbaImage` does. The ink planes hold ink amounts: 0 is no ink.
+    /// color space — the profile Photoshop embedded, when there is one — with the layer's alpha
+    /// clipping the drawing, which leaves the pixels premultiplied the way `rgbaImage` builds them.
+    /// The ink planes hold ink amounts: 0 is no ink.
     static func cmykImage(width: Int, height: Int, cyan: [UInt8], magenta: [UInt8], yellow: [UInt8],
                           key: [UInt8], alpha: [UInt8], profile: CGColorSpace?) throws -> CGImage {
         let count = width * height
@@ -123,36 +125,33 @@ nonisolated enum PSDChannelCoder {
               key.count >= count, alpha.count >= count else { throw PSDError.truncated }
         var ink = [UInt8](repeating: 0, count: count * 4)
         for i in 0..<count {
-            ink[i * 4] = cyan[i]
-            ink[i * 4 + 1] = magenta[i]
-            ink[i * 4 + 2] = yellow[i]
-            ink[i * 4 + 3] = key[i]
+            let target = i * 4
+            ink[target] = cyan[i]
+            ink[target + 1] = magenta[i]
+            ink[target + 2] = yellow[i]
+            ink[target + 3] = key[i]
         }
-        guard let provider = CGDataProvider(data: Data(ink) as CFData),
+        guard let inkProvider = CGDataProvider(data: Data(ink) as CFData),
               let cmyk = CGImage(
                 width: width, height: height, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: width * 4,
                 space: profile ?? CGColorSpaceCreateDeviceCMYK(),
                 bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.none.rawValue),
-                provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent)
-        else { throw PSDError.truncated }
-
-        var pixels = [UInt8](repeating: 0, count: count * 4)
-        try pixels.withUnsafeMutableBytes { buffer in
-            guard let context = CGContext(
-                data: buffer.baseAddress, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
+                provider: inkProvider, decode: nil, shouldInterpolate: false, intent: .defaultIntent),
+              let alphaProvider = CGDataProvider(data: Data(alpha) as CFData),
+              // CoreGraphics reads a gray mask as its own inverse, so the decode array turns the
+              // layer's alpha into coverage rather than 255 minus coverage.
+              let mask = CGImage(
+                maskWidth: width, height: height, bitsPerComponent: 8, bitsPerPixel: 8, bytesPerRow: width,
+                provider: alphaProvider, decode: [1, 0], shouldInterpolate: false),
+              let context = CGContext(
+                data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
                 space: CGColorSpace(name: CGColorSpace.sRGB)!,
-                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { throw PSDError.truncated }
-            context.draw(cmyk, in: CGRect(x: 0, y: 0, width: width, height: height))
-        }
-        // The conversion comes back opaque, so the layer's own alpha is applied here.
-        for i in 0..<count {
-            let a = alpha[i]
-            pixels[i * 4] = UInt8((UInt16(pixels[i * 4]) * UInt16(a) + 127) / 255)
-            pixels[i * 4 + 1] = UInt8((UInt16(pixels[i * 4 + 1]) * UInt16(a) + 127) / 255)
-            pixels[i * 4 + 2] = UInt8((UInt16(pixels[i * 4 + 2]) * UInt16(a) + 127) / 255)
-            pixels[i * 4 + 3] = a
-        }
-        return try image(width: width, height: height, rgba: pixels)
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue)
+        else { throw PSDError.truncated }
+        context.clip(to: CGRect(x: 0, y: 0, width: width, height: height), mask: mask)
+        context.draw(cmyk, in: CGRect(x: 0, y: 0, width: width, height: height))
+        guard let converted = context.makeImage() else { throw PSDError.truncated }
+        return converted
     }
 
     static func maskImage(width: Int, height: Int, gray: [UInt8]) throws -> CGImage {
@@ -167,7 +166,7 @@ nonisolated enum PSDChannelCoder {
         return image
     }
 
-    private static func unpackRLE(width: Int, height: Int, sampleBytes: Int, data: Data, largeDocument: Bool) throws -> [UInt8] {
+    private static func unpackRLE(width: Int, height: Int, sampleBytes: Int, data: [UInt8], largeDocument: Bool) throws -> [UInt8] {
         let rowBytes = width * sampleBytes
         var offset = 0
         func next() throws -> UInt8 {
@@ -214,7 +213,7 @@ nonisolated enum PSDChannelCoder {
         return plane
     }
 
-    private static func unpackRLE(width: Int, height: Int, sampleBytes: Int, data: Data, largeDocument: Bool, crop: PSDCrop) throws -> [UInt8] {
+    private static func unpackRLE(width: Int, height: Int, sampleBytes: Int, data: [UInt8], largeDocument: Bool, crop: PSDCrop) throws -> [UInt8] {
         let rowBytes = width * sampleBytes
         let cropBytes = crop.width * sampleBytes
         var offset = 0

@@ -8,12 +8,13 @@ import Testing
 @MainActor
 @Suite(.serialized)
 struct PSDDeepAndCMYKTests {
-    private func colorImage(width: Int, height: Int, red: CGFloat, green: CGFloat, blue: CGFloat) throws -> CGImage {
+    private func colorImage(width: Int, height: Int, red: CGFloat, green: CGFloat, blue: CGFloat,
+                            alpha: CGFloat = 1) throws -> CGImage {
         let context = try #require(CGContext(data: nil, width: width, height: height, bitsPerComponent: 8,
                                              bytesPerRow: width * 4, space: CGColorSpace(name: CGColorSpace.sRGB)!,
                                              bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
         let color = try #require(CGColor(colorSpace: CGColorSpace(name: CGColorSpace.sRGB)!,
-                                         components: [red, green, blue, 1]))
+                                         components: [red, green, blue, alpha]))
         context.setFillColor(color)
         context.fill(CGRect(x: 0, y: 0, width: width, height: height))
         return try #require(context.makeImage())
@@ -28,6 +29,18 @@ struct PSDDeepAndCMYKTests {
         context.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
         let index = (y * image.width + x) * 4
         return (Int(bytes[index]), Int(bytes[index + 1]), Int(bytes[index + 2]))
+    }
+
+    /// The same read, with the alpha channel the layer came in with.
+    private func pixelRGBA(_ image: CGImage, x: Int, y: Int) throws -> (r: Int, g: Int, b: Int, a: Int) {
+        var bytes = [UInt8](repeating: 0, count: image.width * image.height * 4)
+        let context = try #require(CGContext(
+            data: &bytes, width: image.width, height: image.height, bitsPerComponent: 8,
+            bytesPerRow: image.width * 4, space: CGColorSpace(name: CGColorSpace.sRGB)!,
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
+        let index = (y * image.width + x) * 4
+        return (Int(bytes[index]), Int(bytes[index + 1]), Int(bytes[index + 2]), Int(bytes[index + 3]))
     }
 
     /// A layer of `image` filling `bounds`, in a canvas of the given size.
@@ -147,6 +160,20 @@ struct PSDDeepAndCMYKTests {
         #expect(parsed.sourceDepth == 16)
         let sample = try pixel(try #require(parsed.layers[0].image), x: 0, y: 0)
         #expect(sample.r < 100 && sample.g < 100 && sample.b < 100, "16-bit full ink came back as \(sample)")
+    }
+
+    @Test func cmykLayersKeepTheirAlpha() throws {
+        let halfInk = try colorImage(width: 2, height: 2, red: 0, green: 0, blue: 0, alpha: 0.5)
+        var layer = PSDRecord(id: UUID(), name: "Half")
+        layer.bounds = CGRect(x: 0, y: 0, width: 2, height: 2)
+        layer.image = halfInk
+        let data = try PSDFixture.data(document([layer], width: 2, height: 2), composite: halfInk, colorMode: 4)
+
+        let parsed = try PSDReader.read(data)
+        let image = try #require(parsed.layers[0].image)
+        let sample = try pixelRGBA(image, x: 0, y: 0)
+        #expect(abs(sample.a - 128) <= 2, "alpha came back as \(sample.a)")
+        #expect(sample.r < 100 && sample.g < 100 && sample.b < 100, "the ink should still be dark: \(sample)")
     }
 
     @Test func theReportNamesTheConversions() throws {

@@ -335,13 +335,17 @@ nonisolated enum PSDReader {
         let alpha = planes[-1] ?? opaque
         if isCMYK {
             guard alpha.count >= width * height else { throw PSDError.truncated }
-            // Photoshop stores ink with 255 for no ink; the coder takes ink amounts.
-            func ink(_ id: Int) -> [UInt8] {
-                guard let plane = planes[id], plane.count >= width * height else { return black }
-                return plane.map { 255 - $0 }
+            // Photoshop stores ink with 255 for no ink; the coder takes ink amounts. Turning the
+            // planes over in place keeps a heavy layer from holding two copies of every channel.
+            for id in 0...3 {
+                planes[id]?.withUnsafeMutableBufferPointer { buffer in
+                    for index in buffer.indices { buffer[index] = 255 &- buffer[index] }
+                }
             }
-            layer.image = try PSDChannelCoder.cmykImage(width: width, height: height, cyan: ink(0), magenta: ink(1),
-                                                        yellow: ink(2), key: ink(3), alpha: alpha, profile: cmykSpace)
+            layer.image = try PSDChannelCoder.cmykImage(width: width, height: height, cyan: planes[0] ?? black,
+                                                        magenta: planes[1] ?? black, yellow: planes[2] ?? black,
+                                                        key: planes[3] ?? black, alpha: alpha, profile: cmykSpace)
+            planes.removeAll()
             return
         }
         let red = planes[0] ?? black
