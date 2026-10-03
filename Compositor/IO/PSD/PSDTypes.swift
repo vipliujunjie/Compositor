@@ -3,15 +3,48 @@ import Foundation
 import UniformTypeIdentifiers
 
 nonisolated enum PSDError: LocalizedError, Equatable {
-    case truncated, unsupportedVersion, unsupportedColorMode, unsupportedDepth, unsupportedCompression
+    case truncated, unsupportedVersion
+    /// Bits per channel, as the file declares it: 1, 8, 16 or 32.
+    case unsupportedDepth(Int)
+    /// Photoshop's colour mode value: 0 bitmap, 1 grayscale, 2 indexed, 3 RGB, 4 CMYK, 7 multichannel,
+    /// 8 duotone, 9 Lab.
+    case unsupportedColorMode(Int)
+    case unsupportedCompression
+
+    /// True for the files the reader can't take but Photoshop's own merged image can supply: 16-bit,
+    /// 32-bit and everything that isn't RGB. The importer reads those as pixels instead of failing.
+    var requiresRasterImport: Bool {
+        switch self {
+        case .unsupportedDepth, .unsupportedColorMode: true
+        default: false
+        }
+    }
+
     var errorDescription: String? {
         switch self {
         case .truncated: String(localized: "The Photoshop file could not be read. It may be damaged or incomplete.")
         case .unsupportedVersion: String(localized: "This Photoshop file uses a format version Compositor can’t read.")
-        case .unsupportedColorMode: String(localized: "Only 8-bit RGB Photoshop files can be imported.")
-        case .unsupportedDepth: String(localized: "Only 8-bit RGB Photoshop files can be imported.")
+        case .unsupportedDepth(let bits):
+            String(localized: "This Photoshop file is \(bits)-bit, and its merged image couldn’t be read. Convert it to 8-bit RGB in Photoshop, then import it again.")
+        case .unsupportedColorMode(let mode):
+            String(localized: "This Photoshop file is \(psdColorModeName(mode)), and its merged image couldn’t be read. Convert it to RGB in Photoshop, then import it again.")
         case .unsupportedCompression: String(localized: "This Photoshop file uses a layer compression method that isn’t supported.")
         }
+    }
+}
+
+/// The name Photoshop gives a colour mode, for a message the reader can act on. RGB needs no name
+/// here: it is the mode the reader reads.
+nonisolated func psdColorModeName(_ mode: Int) -> String {
+    switch mode {
+    case 0: String(localized: "Bitmap")
+    case 1: String(localized: "Grayscale")
+    case 2: String(localized: "Indexed Color")
+    case 4: String(localized: "CMYK")
+    case 7: String(localized: "Multichannel")
+    case 8: String(localized: "Duotone")
+    case 9: String(localized: "Lab")
+    default: String(localized: "not RGB")
     }
 }
 

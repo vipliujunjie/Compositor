@@ -42,8 +42,8 @@ nonisolated enum PSDReader {
               canvasWidth * canvasHeight <= DocumentLimits.maxSurfacePixels else {
             throw ImageImportError.tooLarge
         }
-        guard depth == 8 else { throw PSDError.unsupportedDepth }
-        guard mode == 3 else { throw PSDError.unsupportedColorMode }
+        guard depth == 8 else { throw PSDError.unsupportedDepth(Int(depth)) }
+        guard mode == 3 else { throw PSDError.unsupportedColorMode(Int(mode)) }
         try cursor.skip(Int(try cursor.u32()))
         let resourcesLength = Int(try cursor.u32())
         let resourcesEnd = cursor.offset + resourcesLength

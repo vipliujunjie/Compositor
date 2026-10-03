@@ -842,6 +842,18 @@ final class EditorSession {
                         }
                         let assets = try await ImageImporter.shared.photoshopAssets(parsed)
                         imported = try PSDDocumentBuilder.makeImport(parsed, assets: assets)
+                    } catch let error as PSDError where error.requiresRasterImport {
+                        // 16-bit, 32-bit and files that aren't RGB: the reader takes 8-bit RGB only, and
+                        // Photoshop's own merged image is what can come in, as one 8-bit sRGB layer. The
+                        // conversion is reported before it is applied, like every other Photoshop import.
+                        guard let asset = try? await ImageImporter.shared.decode(url, remainingPixels: DocumentLimits.documentPixelBudget - usedPixels,
+                                                                                 flattenedPhotoshop: true) else {
+                            endPSDReading()
+                            throw error
+                        }
+                        if !(await finishPSDReading(Self.rasterConversionNotes(for: url, error: error))) { continue }
+                        insert(asset, centeredAt: point)
+                        continue
                     } catch {
                         endPSDReading()
                         throw error
@@ -879,6 +891,19 @@ final class EditorSession {
         if let parent = layer.parentID { collapsedGroupIDs.remove(parent) }
         self.document?.layers.append(layer)
         activeLayerID = layer.id
+    }
+
+    /// What the conversion report says when a file the reader can't take comes in as its merged image.
+    static func rasterConversionNotes(for url: URL, error: PSDError) -> [PSDConversion] {
+        let name = url.deletingPathExtension().lastPathComponent
+        switch error {
+        case .unsupportedDepth(let bits):
+            return [PSDConversion(layerName: name, message: String(localized: "This Photoshop file is \(bits)-bit, so its merged image was imported as 8-bit sRGB pixels. Its layers are no longer editable."))]
+        case .unsupportedColorMode(let mode):
+            return [PSDConversion(layerName: name, message: String(localized: "This Photoshop file is \(psdColorModeName(mode)), so its merged image was imported as 8-bit sRGB pixels. Its layers are no longer editable."))]
+        default:
+            return []
+        }
     }
 
     /// Puts the sheet up before the file is read, so a big PSD doesn't leave the click unanswered.

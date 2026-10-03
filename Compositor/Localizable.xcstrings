@@ -7340,16 +7340,6 @@
         }
       }
     },
-    "Only 8-bit RGB Photoshop files can be imported." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "只能导入 8 位 RGB Photoshop 文件。"
-          }
-        }
-      }
-    },
     "Only print dimensions and resolution change. Pixels stay unchanged." : {
       "localizations" : {
         "zh-Hans" : {
@@ -11438,6 +11428,126 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在框架内缩放变换后的图像。"
+          }
+        }
+      }
+    },
+    "Bitmap" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "位图"
+          }
+        }
+      }
+    },
+    "CMYK" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CMYK"
+          }
+        }
+      }
+    },
+    "Duotone" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "双色调"
+          }
+        }
+      }
+    },
+    "Grayscale" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "灰度"
+          }
+        }
+      }
+    },
+    "Indexed Color" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "索引颜色"
+          }
+        }
+      }
+    },
+    "Lab" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lab"
+          }
+        }
+      }
+    },
+    "Multichannel" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多通道"
+          }
+        }
+      }
+    },
+    "This Photoshop file is %@, and its merged image couldn’t be read. Convert it to RGB in Photoshop, then import it again." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此 Photoshop 文件为 %@，且无法读取其合并图像。请在 Photoshop 中转换为 RGB 后重新导入。"
+          }
+        }
+      }
+    },
+    "This Photoshop file is %@, so its merged image was imported as 8-bit sRGB pixels. Its layers are no longer editable." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此 Photoshop 文件为 %@，已按其合并图像导入为 8 位 sRGB 像素，图层不再可编辑。"
+          }
+        }
+      }
+    },
+    "This Photoshop file is %lld-bit, and its merged image couldn’t be read. Convert it to 8-bit RGB in Photoshop, then import it again." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此 Photoshop 文件为 %lld 位，且无法读取其合并图像。请在 Photoshop 中转换为 8 位 RGB 后重新导入。"
+          }
+        }
+      }
+    },
+    "This Photoshop file is %lld-bit, so its merged image was imported as 8-bit sRGB pixels. Its layers are no longer editable." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此 Photoshop 文件为 %lld 位，已按其合并图像导入为 8 位 sRGB 像素，图层不再可编辑。"
+          }
+        }
+      }
+    },
+    "not RGB" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "非 RGB"
           }
         }
       }
