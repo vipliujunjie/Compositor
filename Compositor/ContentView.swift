@@ -17,6 +17,16 @@ struct ContentView: View {
     @State private var isDropTargeted = false
     /// The window's width, so the tab strip can use the toolbar's free space.
     @State private var windowWidth: CGFloat = 1180
+    /// Everything the toolbar needs room for outside the tab strip: the traffic lights, the New
+    /// button, the zoom in/out glyphs and the margins. `271` is that fixed part, measured from the
+    /// 352 points the layout used when the zoom labels were English; the labels themselves are
+    /// measured, because a translation can be wider and would otherwise push them into the
+    /// toolbar's overflow menu.
+    private var toolbarReserve: CGFloat {
+        [String(localized: "Fit"), String(localized: "100%")].reduce(271) { total, label in
+            total + (label as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 13)]).width + 16
+        }
+    }
     /// A layer dragged from this canvas's own tab has nowhere to go, so the canvas doesn't light up for it.
     private var acceptsDrop: Bool {
         guard let workspace = applicationDelegate?.workspace else { return true }
@@ -171,7 +181,7 @@ struct ContentView: View {
                         // As wide as the toolbar allows: the window less the traffic lights and New button before it
                         // and the zoom controls after it. Bounded, so adding tabs never pushes those aside; the
                         // strip scrolls instead.
-                        .frame(width: max(200, windowWidth - 352), height: 34, alignment: .center)
+                        .frame(width: max(200, windowWidth - toolbarReserve), height: 34, alignment: .center)
                 }
                 .sharedBackgroundVisibility(.hidden)
             }
