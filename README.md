@@ -1,3 +1,5 @@
+**English** | [简体中文](README.zh-CN.md)
+
 # Compositor
 
 Adobe Photoshop costs too much and tools like GIMP don’t feel familiar enough for me to stay in flow. That’s why I built Compositor.
@@ -91,13 +93,15 @@ Open `Compositor.xcodeproj` and run the **Compositor** scheme.
 
 ## Releasing
 
-`scripts/release.sh` builds a Release version, signs it with Developer ID, notarizes and staples it, and packages it into `dist/Compositor-<version>.dmg`.
+`scripts/release.sh` builds a Release version, signs it with Developer ID, notarizes and staples it, and packages it into `dist/Compositor-<version>-zh.dmg` (`SUFFIX` defaults to `-zh`, and the shipped app is named `Compositor-zh.app`).
 
 It needs, all kept outside this repository:
 
 - a **Developer ID Application** certificate in the login keychain
 - notarization credentials saved with `xcrun notarytool store-credentials "compositor-notary" …`
 - [`create-dmg`](https://github.com/create-dmg/create-dmg) (`brew install create-dmg`)
+
+`TEAM_ID` and `NOTARY_PROFILE` override the signing team and the notarytool profile, `SUFFIX=""` restores the upstream names, and `SKIP_NOTARIZATION=1` signs and packages without submitting to Apple.
 
 ## License
 
